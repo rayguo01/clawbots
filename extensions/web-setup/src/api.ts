@@ -3,6 +3,7 @@ import { getSetupStatus } from "./config-bridge.js";
 import { sendJson } from "./helpers.js";
 import { handleModelSave } from "./model-setup.js";
 import { handleTelegramSave, handleTelegramVerify } from "./telegram-setup.js";
+import { handleWhatsAppQr, handleWhatsAppStatus } from "./whatsapp-setup.js";
 
 export function registerApiRoutes(api: OpenClawPluginApi): void {
   // Setup status
@@ -17,6 +18,10 @@ export function registerApiRoutes(api: OpenClawPluginApi): void {
   // Telegram
   api.registerHttpRoute({ path: "/api/setup/telegram/verify", handler: handleTelegramVerify });
   api.registerHttpRoute({ path: "/api/setup/telegram/save", handler: handleTelegramSave });
+
+  // WhatsApp
+  api.registerHttpRoute({ path: "/api/setup/whatsapp/qr", handler: handleWhatsAppQr });
+  api.registerHttpRoute({ path: "/api/setup/whatsapp/status", handler: handleWhatsAppStatus });
 
   // Model
   api.registerHttpRoute({ path: "/api/setup/model/save", handler: handleModelSave });

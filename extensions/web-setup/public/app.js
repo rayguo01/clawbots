@@ -80,8 +80,9 @@
       '<div class="card">' +
       "<h2>WhatsApp</h2>" +
       '<div class="qr-area" id="wa-qr">' +
-      "<p>WhatsApp QR login will be available in a future update.</p>" +
+      '<button class="btn btn-secondary" id="wa-start">Generate QR Code</button>' +
       "</div>" +
+      '<div id="wa-status" class="status-msg"></div>' +
       "</div>" +
       '<div class="actions">' +
       '<button class="btn btn-primary" id="next-step">Next &rarr;</button>' +
@@ -90,6 +91,7 @@
 
     bind("tg-verify", "click", verifyTelegram);
     bind("tg-save", "click", saveTelegram);
+    bind("wa-start", "click", startWhatsApp);
     bind("next-step", "click", function () {
       state.step = 2;
       render();
@@ -141,6 +143,48 @@
           '<span class="badge badge-error">' + esc(d.error || "Save failed") + "</span>";
       }
     });
+  }
+
+  // ── WhatsApp QR flow ───────────────────────────────────────
+  var waPolling = null;
+
+  function startWhatsApp() {
+    var qrArea = $("#wa-qr");
+    var statusEl = $("#wa-status");
+    qrArea.innerHTML = "<p>Generating QR code...</p>";
+    statusEl.innerHTML = "";
+    api("/api/setup/whatsapp/qr", { method: "POST" }).then(function (d) {
+      if (d.ok && d.qrDataUrl) {
+        qrArea.innerHTML =
+          '<img src="' + d.qrDataUrl + '" alt="WhatsApp QR" style="max-width:256px">';
+        statusEl.innerHTML =
+          '<span class="badge badge-pending">Scan this QR in WhatsApp &rarr; Linked Devices</span>';
+        pollWhatsApp();
+      } else {
+        qrArea.innerHTML =
+          '<button class="btn btn-secondary" id="wa-start">Generate QR Code</button>';
+        statusEl.innerHTML =
+          '<span class="badge badge-error">' + esc(d.message || d.error || "Failed") + "</span>";
+        bind("wa-start", "click", startWhatsApp);
+      }
+    });
+  }
+
+  function pollWhatsApp() {
+    if (waPolling) clearInterval(waPolling);
+    waPolling = setInterval(function () {
+      api("/api/setup/whatsapp/status").then(function (d) {
+        if (d.connected) {
+          clearInterval(waPolling);
+          waPolling = null;
+          var statusEl = $("#wa-status");
+          if (statusEl) statusEl.innerHTML = '<span class="badge badge-success">Connected!</span>';
+          var qrArea = $("#wa-qr");
+          if (qrArea) qrArea.innerHTML = '<span class="badge badge-success">WhatsApp linked</span>';
+          state.whatsapp.configured = true;
+        }
+      });
+    }, 3000);
   }
 
   // ── Step 2: Model ─────────────────────────────────────────

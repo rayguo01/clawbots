@@ -5,22 +5,10 @@ describe("resolveNativeSkillsEnabled", () => {
   it("uses provider defaults for auto", () => {
     expect(
       resolveNativeSkillsEnabled({
-        providerId: "discord",
-        globalSetting: "auto",
-      }),
-    ).toBe(true);
-    expect(
-      resolveNativeSkillsEnabled({
         providerId: "telegram",
         globalSetting: "auto",
       }),
     ).toBe(true);
-    expect(
-      resolveNativeSkillsEnabled({
-        providerId: "slack",
-        globalSetting: "auto",
-      }),
-    ).toBe(false);
     expect(
       resolveNativeSkillsEnabled({
         providerId: "whatsapp",

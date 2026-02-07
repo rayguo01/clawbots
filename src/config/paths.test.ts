@@ -48,18 +48,27 @@ describe("state + config path candidates", () => {
     const home = "/home/test";
     const candidates = resolveDefaultConfigCandidates({} as NodeJS.ProcessEnv, () => home);
     const expected = [
+      path.join(home, ".nanobots", "nanobots.json"),
+      path.join(home, ".nanobots", "openclaw.json"),
+      path.join(home, ".nanobots", "clawdbot.json"),
+      path.join(home, ".nanobots", "moltbot.json"),
+      path.join(home, ".nanobots", "moldbot.json"),
+      path.join(home, ".openclaw", "nanobots.json"),
       path.join(home, ".openclaw", "openclaw.json"),
       path.join(home, ".openclaw", "clawdbot.json"),
       path.join(home, ".openclaw", "moltbot.json"),
       path.join(home, ".openclaw", "moldbot.json"),
+      path.join(home, ".clawdbot", "nanobots.json"),
       path.join(home, ".clawdbot", "openclaw.json"),
       path.join(home, ".clawdbot", "clawdbot.json"),
       path.join(home, ".clawdbot", "moltbot.json"),
       path.join(home, ".clawdbot", "moldbot.json"),
+      path.join(home, ".moltbot", "nanobots.json"),
       path.join(home, ".moltbot", "openclaw.json"),
       path.join(home, ".moltbot", "clawdbot.json"),
       path.join(home, ".moltbot", "moltbot.json"),
       path.join(home, ".moltbot", "moldbot.json"),
+      path.join(home, ".moldbot", "nanobots.json"),
       path.join(home, ".moldbot", "openclaw.json"),
       path.join(home, ".moldbot", "clawdbot.json"),
       path.join(home, ".moldbot", "moltbot.json"),
@@ -164,7 +173,7 @@ describe("state + config path candidates", () => {
       const overrideDir = path.join(root, "override");
       const env = { OPENCLAW_STATE_DIR: overrideDir } as NodeJS.ProcessEnv;
       const resolved = resolveConfigPath(env, overrideDir, () => root);
-      expect(resolved).toBe(path.join(overrideDir, "openclaw.json"));
+      expect(resolved).toBe(path.join(overrideDir, "nanobots.json"));
     } finally {
       await fs.rm(root, { recursive: true, force: true });
     }

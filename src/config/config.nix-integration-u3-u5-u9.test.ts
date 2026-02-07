@@ -35,10 +35,10 @@ describe("Nix integration (U3, U5, U9)", () => {
   });
 
   describe("U5: CONFIG_PATH and STATE_DIR env var overrides", () => {
-    it("STATE_DIR defaults to ~/.openclaw when env not set", async () => {
+    it("STATE_DIR defaults to ~/.nanobots when env not set", async () => {
       await withEnvOverride({ OPENCLAW_STATE_DIR: undefined }, async () => {
         const { STATE_DIR } = await import("./config.js");
-        expect(STATE_DIR).toMatch(/\.openclaw$/);
+        expect(STATE_DIR).toMatch(/\.nanobots$/);
       });
     });
 
@@ -49,12 +49,12 @@ describe("Nix integration (U3, U5, U9)", () => {
       });
     });
 
-    it("CONFIG_PATH defaults to ~/.openclaw/openclaw.json when env not set", async () => {
+    it("CONFIG_PATH defaults to ~/.nanobots/nanobots.json when env not set", async () => {
       await withEnvOverride(
         { OPENCLAW_CONFIG_PATH: undefined, OPENCLAW_STATE_DIR: undefined },
         async () => {
           const { CONFIG_PATH } = await import("./config.js");
-          expect(CONFIG_PATH).toMatch(/\.openclaw[\\/]openclaw\.json$/);
+          expect(CONFIG_PATH).toMatch(/\.nanobots[\\/]nanobots\.json$/);
         },
       );
     });
@@ -83,7 +83,7 @@ describe("Nix integration (U3, U5, U9)", () => {
         },
         async () => {
           const { CONFIG_PATH } = await import("./config.js");
-          expect(CONFIG_PATH).toBe(path.join(path.resolve("/custom/state"), "openclaw.json"));
+          expect(CONFIG_PATH).toBe(path.join(path.resolve("/custom/state"), "nanobots.json"));
         },
       );
     });

@@ -32,7 +32,7 @@ async function writePluginFixture(params: {
 describe("config plugin validation", () => {
   it("rejects missing plugin load paths", async () => {
     await withTempHome(async (home) => {
-      process.env.OPENCLAW_STATE_DIR = path.join(home, ".openclaw");
+      process.env.OPENCLAW_STATE_DIR = path.join(home, ".nanobots");
       vi.resetModules();
       const { validateConfigObjectWithPlugins } = await import("./config.js");
       const missingPath = path.join(home, "missing-plugin");
@@ -53,7 +53,7 @@ describe("config plugin validation", () => {
 
   it("rejects missing plugin ids in entries", async () => {
     await withTempHome(async (home) => {
-      process.env.OPENCLAW_STATE_DIR = path.join(home, ".openclaw");
+      process.env.OPENCLAW_STATE_DIR = path.join(home, ".nanobots");
       vi.resetModules();
       const { validateConfigObjectWithPlugins } = await import("./config.js");
       const res = validateConfigObjectWithPlugins({
@@ -72,7 +72,7 @@ describe("config plugin validation", () => {
 
   it("rejects missing plugin ids in allow/deny/slots", async () => {
     await withTempHome(async (home) => {
-      process.env.OPENCLAW_STATE_DIR = path.join(home, ".openclaw");
+      process.env.OPENCLAW_STATE_DIR = path.join(home, ".nanobots");
       vi.resetModules();
       const { validateConfigObjectWithPlugins } = await import("./config.js");
       const res = validateConfigObjectWithPlugins({
@@ -99,7 +99,7 @@ describe("config plugin validation", () => {
 
   it("surfaces plugin config diagnostics", async () => {
     await withTempHome(async (home) => {
-      process.env.OPENCLAW_STATE_DIR = path.join(home, ".openclaw");
+      process.env.OPENCLAW_STATE_DIR = path.join(home, ".nanobots");
       const pluginDir = path.join(home, "bad-plugin");
       await writePluginFixture({
         dir: pluginDir,
@@ -138,12 +138,12 @@ describe("config plugin validation", () => {
 
   it("accepts known plugin ids", async () => {
     await withTempHome(async (home) => {
-      process.env.OPENCLAW_STATE_DIR = path.join(home, ".openclaw");
+      process.env.OPENCLAW_STATE_DIR = path.join(home, ".nanobots");
       vi.resetModules();
       const { validateConfigObjectWithPlugins } = await import("./config.js");
       const res = validateConfigObjectWithPlugins({
         agents: { list: [{ id: "pi" }] },
-        plugins: { enabled: false, entries: { discord: { enabled: true } } },
+        plugins: { enabled: false, entries: { telegram: { enabled: true } } },
       });
       expect(res.ok).toBe(true);
     });
@@ -151,7 +151,7 @@ describe("config plugin validation", () => {
 
   it("accepts plugin heartbeat targets", async () => {
     await withTempHome(async (home) => {
-      process.env.OPENCLAW_STATE_DIR = path.join(home, ".openclaw");
+      process.env.OPENCLAW_STATE_DIR = path.join(home, ".nanobots");
       const pluginDir = path.join(home, "bluebubbles-plugin");
       await writePluginFixture({
         dir: pluginDir,
@@ -172,7 +172,7 @@ describe("config plugin validation", () => {
 
   it("rejects unknown heartbeat targets", async () => {
     await withTempHome(async (home) => {
-      process.env.OPENCLAW_STATE_DIR = path.join(home, ".openclaw");
+      process.env.OPENCLAW_STATE_DIR = path.join(home, ".nanobots");
       vi.resetModules();
       const { validateConfigObjectWithPlugins } = await import("./config.js");
       const res = validateConfigObjectWithPlugins({

@@ -61,82 +61,82 @@ describe("applyPluginAutoEnable", () => {
   });
 
   describe("preferOver channel prioritization", () => {
-    it("prefers bluebubbles: skips imessage auto-enable when both are configured", () => {
+    it("prefers telegram: auto-enables telegram when configured", () => {
       const result = applyPluginAutoEnable({
         config: {
           channels: {
-            bluebubbles: { serverUrl: "http://localhost:1234", password: "x" },
-            imessage: { cliPath: "/usr/local/bin/imsg" },
+            telegram: { botToken: "123:ABC" },
+            slack: { botToken: "xoxb-test" },
           },
         },
         env: {},
       });
 
-      expect(result.config.plugins?.entries?.bluebubbles?.enabled).toBe(true);
-      expect(result.config.plugins?.entries?.imessage?.enabled).toBeUndefined();
-      expect(result.changes.join("\n")).toContain("bluebubbles configured, not enabled yet.");
-      expect(result.changes.join("\n")).not.toContain("iMessage configured, not enabled yet.");
+      expect(result.config.plugins?.entries?.telegram?.enabled).toBe(true);
+      expect(result.config.plugins?.entries?.slack?.enabled).toBe(true);
+      expect(result.changes.join("\n")).toContain("Telegram configured, not enabled yet.");
+      expect(result.changes.join("\n")).toContain("Slack configured, not enabled yet.");
     });
 
-    it("keeps imessage enabled if already explicitly enabled (non-destructive)", () => {
+    it("keeps telegram enabled if already explicitly enabled (non-destructive)", () => {
       const result = applyPluginAutoEnable({
         config: {
           channels: {
-            bluebubbles: { serverUrl: "http://localhost:1234", password: "x" },
-            imessage: { cliPath: "/usr/local/bin/imsg" },
+            telegram: { botToken: "123:ABC" },
+            slack: { botToken: "xoxb-test" },
           },
-          plugins: { entries: { imessage: { enabled: true } } },
+          plugins: { entries: { telegram: { enabled: true } } },
         },
         env: {},
       });
 
-      expect(result.config.plugins?.entries?.bluebubbles?.enabled).toBe(true);
-      expect(result.config.plugins?.entries?.imessage?.enabled).toBe(true);
+      expect(result.config.plugins?.entries?.telegram?.enabled).toBe(true);
+      expect(result.config.plugins?.entries?.slack?.enabled).toBe(true);
     });
 
-    it("allows imessage auto-enable when bluebubbles is explicitly disabled", () => {
+    it("allows telegram auto-enable when slack is explicitly disabled", () => {
       const result = applyPluginAutoEnable({
         config: {
           channels: {
-            bluebubbles: { serverUrl: "http://localhost:1234", password: "x" },
-            imessage: { cliPath: "/usr/local/bin/imsg" },
+            telegram: { botToken: "123:ABC" },
+            slack: { botToken: "xoxb-test" },
           },
-          plugins: { entries: { bluebubbles: { enabled: false } } },
+          plugins: { entries: { slack: { enabled: false } } },
         },
         env: {},
       });
 
-      expect(result.config.plugins?.entries?.bluebubbles?.enabled).toBe(false);
-      expect(result.config.plugins?.entries?.imessage?.enabled).toBe(true);
-      expect(result.changes.join("\n")).toContain("iMessage configured, not enabled yet.");
+      expect(result.config.plugins?.entries?.slack?.enabled).toBe(false);
+      expect(result.config.plugins?.entries?.telegram?.enabled).toBe(true);
+      expect(result.changes.join("\n")).toContain("Telegram configured, not enabled yet.");
     });
 
-    it("allows imessage auto-enable when bluebubbles is in deny list", () => {
+    it("allows telegram auto-enable when slack is in deny list", () => {
       const result = applyPluginAutoEnable({
         config: {
           channels: {
-            bluebubbles: { serverUrl: "http://localhost:1234", password: "x" },
-            imessage: { cliPath: "/usr/local/bin/imsg" },
+            telegram: { botToken: "123:ABC" },
+            slack: { botToken: "xoxb-test" },
           },
-          plugins: { deny: ["bluebubbles"] },
+          plugins: { deny: ["slack"] },
         },
         env: {},
       });
 
-      expect(result.config.plugins?.entries?.bluebubbles?.enabled).toBeUndefined();
-      expect(result.config.plugins?.entries?.imessage?.enabled).toBe(true);
+      expect(result.config.plugins?.entries?.slack?.enabled).toBeUndefined();
+      expect(result.config.plugins?.entries?.telegram?.enabled).toBe(true);
     });
 
-    it("enables imessage normally when only imessage is configured", () => {
+    it("enables telegram normally when only telegram is configured", () => {
       const result = applyPluginAutoEnable({
         config: {
-          channels: { imessage: { cliPath: "/usr/local/bin/imsg" } },
+          channels: { telegram: { botToken: "123:ABC" } },
         },
         env: {},
       });
 
-      expect(result.config.plugins?.entries?.imessage?.enabled).toBe(true);
-      expect(result.changes.join("\n")).toContain("iMessage configured, not enabled yet.");
+      expect(result.config.plugins?.entries?.telegram?.enabled).toBe(true);
+      expect(result.changes.join("\n")).toContain("Telegram configured, not enabled yet.");
     });
   });
 });

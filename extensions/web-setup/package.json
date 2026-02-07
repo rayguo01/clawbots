@@ -1,0 +1,14 @@
+{
+  "name": "@nanobots/web-setup",
+  "version": "2026.2.4",
+  "description": "Nanobots web-based setup wizard",
+  "type": "module",
+  "devDependencies": {
+    "nanobots": "workspace:*"
+  },
+  "nanobots": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

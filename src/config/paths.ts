@@ -193,7 +193,7 @@ export function resolveDefaultConfigCandidates(
   return candidates;
 }
 
-export const DEFAULT_GATEWAY_PORT = 18789;
+export const DEFAULT_GATEWAY_PORT = 8080;
 
 /**
  * Gateway lock directory (ephemeral).

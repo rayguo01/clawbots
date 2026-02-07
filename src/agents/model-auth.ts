@@ -1,4 +1,4 @@
-import { type Api, getEnvApiKey, type Model } from "@mariozechner/pi-ai";
+import type { Api, Model } from "@mariozechner/pi-ai";
 import path from "node:path";
 import type { OpenClawConfig } from "../config/config.js";
 import type { ModelProviderAuthMode, ModelProviderConfig } from "../config/types.js";
@@ -261,11 +261,13 @@ export function resolveEnvApiKey(provider: string): EnvApiKeyResult | null {
   }
 
   if (normalized === "google-vertex") {
-    const envKey = getEnvApiKey(normalized);
-    if (!envKey) {
-      return null;
+    // Inline check for google-vertex ADC to avoid eagerly loading pi-ai.
+    // google-vertex uses Application Default Credentials via gcloud CLI.
+    const adcToken = process.env.GOOGLE_APPLICATION_CREDENTIALS?.trim();
+    if (adcToken) {
+      return { apiKey: adcToken, source: "env: GOOGLE_APPLICATION_CREDENTIALS" };
     }
-    return { apiKey: envKey, source: "gcloud adc" };
+    return null;
   }
 
   if (normalized === "opencode") {

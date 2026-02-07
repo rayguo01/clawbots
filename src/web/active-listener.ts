@@ -1,4 +1,3 @@
-import type { PollInput } from "../polls.js";
 import { formatCliCommand } from "../cli/command-format.js";
 import { DEFAULT_ACCOUNT_ID } from "../routing/session-key.js";
 
@@ -15,7 +14,10 @@ export type ActiveWebListener = {
     mediaType?: string,
     options?: ActiveWebSendOptions,
   ) => Promise<{ messageId: string }>;
-  sendPoll: (to: string, poll: PollInput) => Promise<{ messageId: string }>;
+  sendPoll: (
+    to: string,
+    poll: { question: string; options: string[]; maxSelections?: number },
+  ) => Promise<{ messageId: string }>;
   sendReaction: (
     chatJid: string,
     messageId: string,

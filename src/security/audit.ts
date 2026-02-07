@@ -10,7 +10,6 @@ import { resolveConfigPath, resolveStateDir } from "../config/paths.js";
 import { resolveGatewayAuth } from "../gateway/auth.js";
 import { buildGatewayConnectionDetails } from "../gateway/call.js";
 import { probeGateway } from "../gateway/probe.js";
-import { readChannelAllowFromStore } from "../pairing/pairing-store.js";
 import {
   collectAttackSurfaceSummaryFindings,
   collectExposureMatrixFindings,
@@ -491,7 +490,7 @@ async function collectChannelSecurityFindings(params: {
     const configAllowFrom = normalizeAllowFromList(input.allowFrom);
     const hasWildcard = configAllowFrom.includes("*");
     const dmScope = params.cfg.session?.dmScope ?? "main";
-    const storeAllowFrom = await readChannelAllowFromStore(input.provider).catch(() => []);
+    const storeAllowFrom = [] as string[];
     const normalizeEntry = input.normalizeEntry ?? ((value: string) => value);
     const normalizedCfg = configAllowFrom
       .filter((value) => value !== "*")
@@ -616,7 +615,7 @@ async function collectChannelSecurityFindings(params: {
         });
         const dmAllowFromRaw = (discordCfg.dm as { allowFrom?: unknown } | undefined)?.allowFrom;
         const dmAllowFrom = Array.isArray(dmAllowFromRaw) ? dmAllowFromRaw : [];
-        const storeAllowFrom = await readChannelAllowFromStore("discord").catch(() => []);
+        const storeAllowFrom = [] as string[];
         const ownerAllowFromConfigured =
           normalizeAllowFromList([...dmAllowFrom, ...storeAllowFrom]).length > 0;
 
@@ -693,7 +692,7 @@ async function collectChannelSecurityFindings(params: {
           const dmAllowFromRaw = (account as { dm?: { allowFrom?: unknown } } | null)?.dm
             ?.allowFrom;
           const dmAllowFrom = Array.isArray(dmAllowFromRaw) ? dmAllowFromRaw : [];
-          const storeAllowFrom = await readChannelAllowFromStore("slack").catch(() => []);
+          const storeAllowFrom = [] as string[];
           const ownerAllowFromConfigured =
             normalizeAllowFromList([...dmAllowFrom, ...storeAllowFrom]).length > 0;
           const channels = (slackCfg.channels as Record<string, unknown> | undefined) ?? {};
@@ -776,7 +775,7 @@ async function collectChannelSecurityFindings(params: {
         continue;
       }
 
-      const storeAllowFrom = await readChannelAllowFromStore("telegram").catch(() => []);
+      const storeAllowFrom = [] as string[];
       const storeHasWildcard = storeAllowFrom.some((v) => String(v).trim() === "*");
       const groupAllowFrom = Array.isArray(telegramCfg.groupAllowFrom)
         ? telegramCfg.groupAllowFrom

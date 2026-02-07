@@ -1,9 +1,7 @@
 import type { OpenClawConfig } from "../../config/config.js";
-import type { PollInput } from "../../polls.js";
 import { getChannelPlugin, normalizeChannelId } from "../../channels/plugins/index.js";
 import { loadConfig } from "../../config/config.js";
 import { callGateway, randomIdempotencyKey } from "../../gateway/call.js";
-import { normalizePollInput } from "../../polls.js";
 import {
   GATEWAY_CLIENT_MODES,
   GATEWAY_CLIENT_NAMES,
@@ -229,20 +227,22 @@ export async function sendPoll(params: MessagePollParams): Promise<MessagePollRe
     throw new Error(`Unknown channel: ${params.channel}`);
   }
 
-  const pollInput: PollInput = {
-    question: params.question,
-    options: params.options,
-    maxSelections: params.maxSelections,
-    durationHours: params.durationHours,
-  };
   const plugin = getChannelPlugin(channel);
   const outbound = plugin?.outbound;
   if (!outbound?.sendPoll) {
     throw new Error(`Unsupported poll channel: ${channel}`);
   }
-  const normalized = outbound.pollMaxOptions
-    ? normalizePollInput(pollInput, { maxOptions: outbound.pollMaxOptions })
-    : normalizePollInput(pollInput);
+  const maxOptions = outbound.pollMaxOptions ?? 12;
+  const trimmedOptions = params.options
+    .map((o) => o.trim())
+    .filter(Boolean)
+    .slice(0, maxOptions);
+  const normalized = {
+    question: params.question,
+    options: trimmedOptions,
+    maxSelections: params.maxSelections ?? 1,
+    durationHours: params.durationHours,
+  };
 
   if (params.dryRun) {
     return {

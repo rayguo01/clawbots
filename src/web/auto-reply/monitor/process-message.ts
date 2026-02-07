@@ -26,7 +26,6 @@ import {
   resolveStorePath,
 } from "../../../config/sessions.js";
 import { logVerbose, shouldLogVerbose } from "../../../globals.js";
-import { readChannelAllowFromStore } from "../../../pairing/pairing-store.js";
 import { jidToE164, normalizeE164 } from "../../../utils.js";
 import { newConnectionId } from "../../reconnect.js";
 import { formatError } from "../../session.js";
@@ -87,7 +86,7 @@ async function resolveWhatsAppCommandAuthorized(params: {
     return normalizeAllowFromE164(configuredGroupAllowFrom).includes(senderE164);
   }
 
-  const storeAllowFrom = await readChannelAllowFromStore("whatsapp").catch(() => []);
+  const storeAllowFrom: string[] = [];
   const combinedAllowFrom = Array.from(
     new Set([...(configuredAllowFrom ?? []), ...storeAllowFrom]),
   );

@@ -2,12 +2,37 @@ import type { ImageContent } from "@mariozechner/pi-ai";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { extractTextFromMessage } from "../../../tui/tui-formatters.js";
 import { resolveUserPath } from "../../../utils.js";
 import { loadWebMedia } from "../../../web/media.js";
 import { assertSandboxPath } from "../../sandbox-paths.js";
 import { sanitizeImageBlocks } from "../../tool-images.js";
 import { log } from "../logger.js";
+
+/**
+ * Extracts text content from a message object (inline replacement for tui-formatters).
+ */
+function extractTextFromMessage(msg: unknown): string | null {
+  if (!msg || typeof msg !== "object") {
+    return null;
+  }
+  const content = (msg as { content?: unknown }).content;
+  if (typeof content === "string") {
+    return content;
+  }
+  if (Array.isArray(content)) {
+    const texts: string[] = [];
+    for (const part of content) {
+      if (part != null && typeof part === "object" && (part as { type?: string }).type === "text") {
+        const text = (part as { text?: string }).text;
+        if (typeof text === "string") {
+          texts.push(text);
+        }
+      }
+    }
+    return texts.length > 0 ? texts.join("\n") : null;
+  }
+  return null;
+}
 
 /**
  * Common image file extensions for detection.

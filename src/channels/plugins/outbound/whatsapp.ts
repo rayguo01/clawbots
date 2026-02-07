@@ -1,8 +1,6 @@
 import type { ChannelOutboundAdapter } from "../types.js";
 import { chunkText } from "../../../auto-reply/chunk.js";
-import { shouldLogVerbose } from "../../../globals.js";
 import { missingTargetError } from "../../../infra/outbound/target-errors.js";
-import { sendPollWhatsApp } from "../../../web/outbound.js";
 import { isWhatsAppGroupJid, normalizeWhatsAppTarget } from "../../../whatsapp/normalize.js";
 
 export const whatsappOutbound: ChannelOutboundAdapter = {
@@ -78,9 +76,4 @@ export const whatsappOutbound: ChannelOutboundAdapter = {
     });
     return { channel: "whatsapp", ...result };
   },
-  sendPoll: async ({ to, poll, accountId }) =>
-    await sendPollWhatsApp(to, poll, {
-      verbose: shouldLogVerbose(),
-      accountId: accountId ?? undefined,
-    }),
 };

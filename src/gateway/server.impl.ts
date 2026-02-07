@@ -1,5 +1,4 @@
 import path from "node:path";
-import type { CanvasHostServer } from "../canvas-host/server.js";
 import type { PluginServicesHandle } from "../plugins/services.js";
 import type { RuntimeEnv } from "../runtime.js";
 import type { ControlUiRootState } from "./control-ui.js";
@@ -305,7 +304,6 @@ export async function startGatewayServer(
   const { wizardSessions, findRunningWizard, purgeWizardSession } = createWizardSessionTracker();
 
   const deps = createDefaultDeps();
-  let canvasHostServer: CanvasHostServer | null = null;
   const gatewayTls = await loadGatewayTlsRuntime(cfgAtStart.gateway?.tls, log.child("tls"));
   if (cfgAtStart.gateway?.tls?.enabled && !gatewayTls.enabled) {
     throw new Error(gatewayTls.error ?? "gateway tls: failed to enable");
@@ -467,15 +465,13 @@ export async function startGatewayServer(
     forwarder: execApprovalForwarder,
   });
 
-  const canvasHostServerPort = (canvasHostServer as CanvasHostServer | null)?.port;
-
   attachGatewayWsHandlers({
     wss,
     clients,
     port,
     gatewayHost: bindHost ?? undefined,
     canvasHostEnabled: Boolean(canvasHost),
-    canvasHostServerPort,
+    canvasHostServerPort: undefined,
     resolvedAuth,
     gatewayMethods,
     events: GATEWAY_EVENTS,
@@ -601,7 +597,7 @@ export async function startGatewayServer(
     bonjourStop,
     tailscaleCleanup,
     canvasHost,
-    canvasHostServer,
+    canvasHostServer: null,
     stopChannel,
     pluginServices,
     cron,

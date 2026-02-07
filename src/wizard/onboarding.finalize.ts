@@ -34,8 +34,6 @@ import {
 import { resolveGatewayService } from "../daemon/service.js";
 import { isSystemdUserServiceAvailable } from "../daemon/systemd.js";
 import { ensureControlUiAssetsBuilt } from "../infra/control-ui-assets.js";
-import { restoreTerminalState } from "../terminal/restore.js";
-import { runTui } from "../tui/tui.js";
 import { resolveUserPath } from "../utils.js";
 
 type FinalizeOnboardingOptions = {
@@ -330,16 +328,11 @@ export async function finalizeOnboardingWizard(
     });
 
     if (hatchChoice === "tui") {
-      restoreTerminalState("pre-onboarding tui");
-      await runTui({
-        url: links.wsUrl,
-        token: settings.authMode === "token" ? settings.gatewayToken : undefined,
-        password: settings.authMode === "password" ? nextConfig.gateway?.auth?.password : "",
-        // Safety: onboarding TUI should not auto-deliver to lastProvider/lastTo.
-        deliver: false,
-        message: hasBootstrap ? "Wake up, my friend!" : undefined,
-      });
-      launchedTui = true;
+      // TUI module has been removed; fall through to open the web UI instead.
+      const fallbackBrowserSupport = await detectBrowserOpenSupport();
+      if (fallbackBrowserSupport.ok) {
+        controlUiOpened = await openUrl(authedUrl);
+      }
     } else if (hatchChoice === "web") {
       const browserSupport = await detectBrowserOpenSupport();
       if (browserSupport.ok) {

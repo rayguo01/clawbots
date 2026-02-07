@@ -33,14 +33,6 @@ const loadConfig = async (): Promise<OpenClawConfig> => {
 
 const entries: SubCliEntry[] = [
   {
-    name: "acp",
-    description: "Agent Control Protocol tools",
-    register: async (program) => {
-      const mod = await import("../acp-cli.js");
-      mod.registerAcpCli(program);
-    },
-  },
-  {
     name: "gateway",
     description: "Gateway control",
     register: async (program) => {
@@ -105,27 +97,11 @@ const entries: SubCliEntry[] = [
     },
   },
   {
-    name: "node",
-    description: "Node control",
-    register: async (program) => {
-      const mod = await import("../node-cli.js");
-      mod.registerNodeCli(program);
-    },
-  },
-  {
     name: "sandbox",
     description: "Sandbox tools",
     register: async (program) => {
       const mod = await import("../sandbox-cli.js");
       mod.registerSandboxCli(program);
-    },
-  },
-  {
-    name: "tui",
-    description: "Terminal UI",
-    register: async (program) => {
-      const mod = await import("../tui-cli.js");
-      mod.registerTuiCli(program);
     },
   },
   {
@@ -166,19 +142,6 @@ const entries: SubCliEntry[] = [
     register: async (program) => {
       const mod = await import("../webhooks-cli.js");
       mod.registerWebhooksCli(program);
-    },
-  },
-  {
-    name: "pairing",
-    description: "Pairing helpers",
-    register: async (program) => {
-      // Initialize plugins before registering pairing CLI.
-      // The pairing CLI calls listPairingChannels() at registration time,
-      // which requires the plugin registry to be populated with channel plugins.
-      const { registerPluginCliCommands } = await import("../../plugins/cli.js");
-      registerPluginCliCommands(program, await loadConfig());
-      const mod = await import("../pairing-cli.js");
-      mod.registerPairingCli(program);
     },
   },
   {

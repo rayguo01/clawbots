@@ -25,11 +25,9 @@ import { formatLocationText, toLocationContext } from "../channels/location.js";
 import { logInboundDrop } from "../channels/logging.js";
 import { resolveMentionGatingWithBypass } from "../channels/mention-gating.js";
 import { recordInboundSession } from "../channels/session.js";
-import { formatCliCommand } from "../cli/command-format.js";
 import { readSessionUpdatedAt, resolveStorePath } from "../config/sessions.js";
 import { logVerbose, shouldLogVerbose } from "../globals.js";
 import { recordChannelActivity } from "../infra/channel-activity.js";
-import { upsertChannelPairingRequest } from "../pairing/pairing-store.js";
 import { resolveAgentRoute } from "../routing/resolve-route.js";
 import { resolveThreadSessionKeys } from "../routing/session-key.js";
 import { withTelegramApiErrorLogging } from "./api-logging.js";
@@ -238,58 +236,9 @@ export const buildTelegramMessageContext = async ({
         effectiveDmAllow.hasWildcard || (effectiveDmAllow.hasEntries && allowMatch.allowed);
       if (!allowed) {
         if (dmPolicy === "pairing") {
-          try {
-            const from = msg.from as
-              | {
-                  first_name?: string;
-                  last_name?: string;
-                  username?: string;
-                  id?: number;
-                }
-              | undefined;
-            const telegramUserId = from?.id ? String(from.id) : candidate;
-            const { code, created } = await upsertChannelPairingRequest({
-              channel: "telegram",
-              id: telegramUserId,
-              meta: {
-                username: from?.username,
-                firstName: from?.first_name,
-                lastName: from?.last_name,
-              },
-            });
-            if (created) {
-              logger.info(
-                {
-                  chatId: candidate,
-                  username: from?.username,
-                  firstName: from?.first_name,
-                  lastName: from?.last_name,
-                  matchKey: allowMatch.matchKey ?? "none",
-                  matchSource: allowMatch.matchSource ?? "none",
-                },
-                "telegram pairing request",
-              );
-              await withTelegramApiErrorLogging({
-                operation: "sendMessage",
-                fn: () =>
-                  bot.api.sendMessage(
-                    chatId,
-                    [
-                      "OpenClaw: access not configured.",
-                      "",
-                      `Your Telegram user id: ${telegramUserId}`,
-                      "",
-                      `Pairing code: ${code}`,
-                      "",
-                      "Ask the bot owner to approve with:",
-                      formatCliCommand("openclaw pairing approve telegram <code>"),
-                    ].join("\n"),
-                  ),
-              });
-            }
-          } catch (err) {
-            logVerbose(`telegram pairing reply failed for chat ${chatId}: ${String(err)}`);
-          }
+          logVerbose(
+            `Blocked unauthorized telegram sender ${candidate} (dmPolicy=${dmPolicy}, ${allowMatchMeta})`,
+          );
         } else {
           logVerbose(
             `Blocked unauthorized telegram sender ${candidate} (dmPolicy=${dmPolicy}, ${allowMatchMeta})`,

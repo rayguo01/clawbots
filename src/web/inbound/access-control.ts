@@ -1,10 +1,5 @@
 import { loadConfig } from "../../config/config.js";
 import { logVerbose } from "../../globals.js";
-import { buildPairingReply } from "../../pairing/pairing-messages.js";
-import {
-  readChannelAllowFromStore,
-  upsertChannelPairingRequest,
-} from "../../pairing/pairing-store.js";
 import { isSelfChatMode, normalizeE164 } from "../../utils.js";
 import { resolveWhatsAppAccount } from "../accounts.js";
 
@@ -40,7 +35,7 @@ export async function checkInboundAccessControl(params: {
   });
   const dmPolicy = cfg.channels?.whatsapp?.dmPolicy ?? "pairing";
   const configuredAllowFrom = account.allowFrom;
-  const storeAllowFrom = await readChannelAllowFromStore("whatsapp").catch(() => []);
+  const storeAllowFrom: string[] = [];
   // Without user config, default to self-only DM access so the owner can talk to themselves.
   const combinedAllowFrom = Array.from(
     new Set([...(configuredAllowFrom ?? []), ...storeAllowFrom]),
@@ -145,27 +140,9 @@ export async function checkInboundAccessControl(params: {
           if (suppressPairingReply) {
             logVerbose(`Skipping pairing reply for historical DM from ${candidate}.`);
           } else {
-            const { code, created } = await upsertChannelPairingRequest({
-              channel: "whatsapp",
-              id: candidate,
-              meta: { name: (params.pushName ?? "").trim() || undefined },
-            });
-            if (created) {
-              logVerbose(
-                `whatsapp pairing request sender=${candidate} name=${params.pushName ?? "unknown"}`,
-              );
-              try {
-                await params.sock.sendMessage(params.remoteJid, {
-                  text: buildPairingReply({
-                    channel: "whatsapp",
-                    idLine: `Your WhatsApp phone number: ${candidate}`,
-                    code,
-                  }),
-                });
-              } catch (err) {
-                logVerbose(`whatsapp pairing reply failed for ${candidate}: ${String(err)}`);
-              }
-            }
+            logVerbose(
+              `Blocked unauthorized sender ${candidate} (dmPolicy=pairing, pairing module removed)`,
+            );
           }
         } else {
           logVerbose(`Blocked unauthorized sender ${candidate} (dmPolicy=${dmPolicy})`);

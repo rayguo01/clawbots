@@ -2,7 +2,6 @@ import type { AgentTool, AgentToolResult } from "@mariozechner/pi-agent-core";
 import type { TSchema } from "@sinclair/typebox";
 import type { MsgContext } from "../../auto-reply/templating.js";
 import type { OpenClawConfig } from "../../config/config.js";
-import type { PollInput } from "../../polls.js";
 import type { GatewayClientMode, GatewayClientName } from "../../utils/message-channel.js";
 import type { NormalizedChatType } from "../chat-type.js";
 import type { ChatChannelId } from "../registry.js";
@@ -326,6 +325,11 @@ export type ChannelPollResult = {
 export type ChannelPollContext = {
   cfg: OpenClawConfig;
   to: string;
-  poll: PollInput;
+  poll: {
+    question: string;
+    options: string[];
+    maxSelections?: number;
+    durationHours?: number;
+  };
   accountId?: string | null;
 };

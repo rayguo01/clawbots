@@ -6,7 +6,6 @@ import { resolveDefaultAgentId } from "../agents/agent-scope.js";
 import { createConfigIO } from "../config/config.js";
 import { INCLUDE_KEY, MAX_INCLUDE_DEPTH } from "../config/includes.js";
 import { resolveConfigPath, resolveOAuthDir, resolveStateDir } from "../config/paths.js";
-import { readChannelAllowFromStore } from "../pairing/pairing-store.js";
 import { runExec } from "../process/exec.js";
 import { normalizeAgentId } from "../routing/session-key.js";
 import { createIcaclsResetCommand, formatIcaclsResetCommand, type ExecFn } from "./windows-acl.js";
@@ -480,7 +479,7 @@ export async function fixSecurityFootguns(opts?: {
     const fixed = applyConfigFixes({ cfg: snap.config, env });
     changes = fixed.changes;
 
-    const whatsappStoreAllowFrom = await readChannelAllowFromStore("whatsapp", env).catch(() => []);
+    const whatsappStoreAllowFrom: string[] = [];
     if (whatsappStoreAllowFrom.length > 0) {
       setWhatsAppGroupAllowFromFromStore({
         cfg: fixed.cfg,

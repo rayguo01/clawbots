@@ -7,12 +7,9 @@ import {
   type ServerResponse,
 } from "node:http";
 import { createServer as createHttpsServer } from "node:https";
-import type { CanvasHostHandler } from "../canvas-host/server.js";
 import type { createSubsystemLogger } from "../logging/subsystem.js";
 import { resolveAgentAvatar } from "../agents/identity-avatar.js";
-import { handleA2uiHttpRequest } from "../canvas-host/a2ui.js";
 import { loadConfig } from "../config/config.js";
-import { handleSlackHttpRequest } from "../slack/http/index.js";
 import {
   handleControlUiAvatarRequest,
   handleControlUiHttpRequest,
@@ -207,7 +204,11 @@ export function createHooksRequestHandler(
 }
 
 export function createGatewayHttpServer(opts: {
-  canvasHost: CanvasHostHandler | null;
+  canvasHost: {
+    handleHttpRequest: (req: IncomingMessage, res: ServerResponse) => Promise<boolean>;
+    handleUpgrade: (req: IncomingMessage, socket: unknown, head: Buffer) => boolean;
+    close: () => Promise<void>;
+  } | null;
   controlUiEnabled: boolean;
   controlUiBasePath: string;
   controlUiRoot?: ControlUiRootState;
@@ -259,9 +260,6 @@ export function createGatewayHttpServer(opts: {
       ) {
         return;
       }
-      if (await handleSlackHttpRequest(req, res)) {
-        return;
-      }
       if (handlePluginRequest && (await handlePluginRequest(req, res))) {
         return;
       }
@@ -287,9 +285,6 @@ export function createGatewayHttpServer(opts: {
         }
       }
       if (canvasHost) {
-        if (await handleA2uiHttpRequest(req, res)) {
-          return;
-        }
         if (await canvasHost.handleHttpRequest(req, res)) {
           return;
         }
@@ -330,7 +325,9 @@ export function createGatewayHttpServer(opts: {
 export function attachGatewayUpgradeHandler(opts: {
   httpServer: HttpServer;
   wss: WebSocketServer;
-  canvasHost: CanvasHostHandler | null;
+  canvasHost: {
+    handleUpgrade: (req: IncomingMessage, socket: unknown, head: Buffer) => boolean;
+  } | null;
 }) {
   const { httpServer, wss, canvasHost } = opts;
   httpServer.on("upgrade", (req, socket, head) => {

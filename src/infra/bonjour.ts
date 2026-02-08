@@ -88,7 +88,14 @@ export async function startGatewayBonjourAdvertiser(
     return { stop: async () => {} };
   }
 
-  const { getResponder, Protocol } = await import("@homebridge/ciao");
+  let ciao;
+  try {
+    ciao = await import("@homebridge/ciao");
+  } catch {
+    logDebug("bonjour: @homebridge/ciao not available, skipping mDNS");
+    return { stop: async () => {} };
+  }
+  const { getResponder, Protocol } = ciao;
   const responder = getResponder();
 
   // mDNS service instance names are single DNS labels; dots in hostnames (like

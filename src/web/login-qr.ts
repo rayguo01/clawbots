@@ -69,13 +69,24 @@ function attachLoginWaiter(accountId: string, login: ActiveLogin) {
         current.connected = true;
       }
     })
-    .catch((err) => {
+    .catch(async (err) => {
       const current = activeLogins.get(accountId);
       if (current?.id !== login.id) {
         return;
       }
+      // lastDisconnect has status at err.error.output.statusCode
+      const status =
+        getStatusCode(err) ??
+        getStatusCode((err as { error?: unknown })?.error) ??
+        getStatusCode((err as { lastDisconnect?: { error?: unknown } })?.lastDisconnect?.error);
+      if (status === 515 && current.restartCount < MAX_515_RETRIES) {
+        // Auto-retry 515 in background — don't wait for poll to trigger it
+        logInfo(`WhatsApp 515 detected, auto-retrying in background…`);
+        await restartLoginSocket(current, defaultRuntime);
+        return;
+      }
       current.error = formatError(err);
-      current.errorStatus = getStatusCode(err);
+      current.errorStatus = status;
     });
 }
 

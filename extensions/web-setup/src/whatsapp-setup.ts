@@ -14,7 +14,7 @@ export async function handleWhatsAppQr(req: IncomingMessage, res: ServerResponse
 
   try {
     // Lazy-import to avoid loading heavy Baileys dependencies at plugin registration time
-    const { startWebLoginWithQr } = await import("../../../src/web/login-qr.js");
+    const { startWebLoginWithQr } = await import("openclaw/plugin-sdk");
     const result = await startWebLoginWithQr({ force: false, timeoutMs: 30_000 });
     sendJson(res, 200, {
       ok: true,
@@ -41,7 +41,7 @@ export async function handleWhatsAppStatus(
   }
 
   try {
-    const { waitForWebLogin } = await import("../../../src/web/login-qr.js");
+    const { waitForWebLogin } = await import("openclaw/plugin-sdk");
     // Short timeout — just check current state, don't block
     const result = await waitForWebLogin({ timeoutMs: 1000 });
     sendJson(res, 200, {

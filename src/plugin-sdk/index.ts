@@ -76,6 +76,7 @@ export type { OpenClawConfig } from "../config/config.js";
 export { loadConfig, readConfigFileSnapshot, writeConfigFile } from "../config/config.js";
 export { resolveConfigPath, resolveStateDir } from "../config/config.js";
 export type { AnyAgentTool } from "../agents/tools/common.js";
+export { startWebLoginWithQr, waitForWebLogin } from "../web/login-qr.js";
 export type { ChannelDock } from "../channels/dock.js";
 export { getChatChannelMeta } from "../channels/registry.js";
 export type {

@@ -126,8 +126,17 @@ export async function startWebLoginWithQr(
   if (hasWeb && !opts.force) {
     const who = selfId.e164 ?? selfId.jid ?? "unknown";
     return {
-      message: `WhatsApp is already linked (${who}). Say “relink” if you want a fresh QR.`,
+      message: `WhatsApp is already linked (${who}). Say "relink" if you want a fresh QR.`,
     };
+  }
+
+  // Clear stale auth data so Baileys starts fresh and emits a QR
+  if (hasWeb && opts.force) {
+    await logoutWeb({
+      authDir: account.authDir,
+      isLegacyAuthDir: account.isLegacyAuthDir,
+      runtime,
+    });
   }
 
   const existing = activeLogins.get(account.accountId);

@@ -1,50 +1,50 @@
 # Nanobots
 
-Personal AI assistant via WhatsApp and Telegram. Zero-config, single-container deployment.
+通过 WhatsApp 和 Telegram 使用的个人 AI 助手。零配置，单容器部署。
 
-## Getting Started
+## 快速开始
 
-### Option A: Docker (Recommended)
+### 方式一：Docker（推荐）
 
-**Prerequisites:** Docker and Docker Compose installed.
+**前提条件：** 已安装 Docker 和 Docker Compose。
 
-**1. Start the container**
+**1. 启动容器**
 
 ```bash
 git clone <repo-url> nanobots && cd nanobots
 docker compose up -d
 ```
 
-First launch will build the image (~5 min). Subsequent starts are instant.
+首次启动需要构建镜像（约 5 分钟），之后启动秒级完成。
 
-**2. Open the setup wizard**
+**2. 打开设置向导**
 
-Visit [http://localhost:8080/web](http://localhost:8080/web) in your browser.
+浏览器访问 [http://localhost:8080/web](http://localhost:8080/web)。
 
-**3. Configure a messaging channel**
+**3. 配置消息通道**
 
-Choose one or both:
+选择一个或两个都配：
 
-- **Telegram**: Create a bot via [@BotFather](https://t.me/BotFather), paste the Bot Token and your User ID (get it from [@userinfobot](https://t.me/userinfobot))
-- **WhatsApp**: Scan the QR code displayed in the wizard with your WhatsApp app
+- **Telegram**：通过 [@BotFather](https://t.me/BotFather) 创建 Bot，填入 Bot Token 和你的 User ID（向 [@userinfobot](https://t.me/userinfobot) 发消息即可获取）
+- **WhatsApp**：用 WhatsApp 扫描向导中显示的二维码
 
-**4. Configure an AI model**
+**4. 配置 AI 模型**
 
-Choose a provider and enter your API key:
+选择模型提供商并填入 API Key：
 
-| Provider  | Get API Key                                                   |
+| 提供商    | 获取 API Key                                                  |
 | --------- | ------------------------------------------------------------- |
 | Anthropic | [console.anthropic.com](https://console.anthropic.com/)       |
 | OpenAI    | [platform.openai.com](https://platform.openai.com/api-keys)   |
 | Google    | [aistudio.google.com](https://aistudio.google.com/app/apikey) |
 
-**5. Start chatting**
+**5. 开始聊天**
 
-Send a message to your bot on Telegram or WhatsApp. The assistant is ready.
+在 Telegram 或 WhatsApp 上给你的 Bot 发消息，助手已就绪。
 
-### Option B: Local Development
+### 方式二：本地开发
 
-**Prerequisites:** Node.js 22+, pnpm 10+.
+**前提条件：** Node.js 22+、pnpm 10+。
 
 ```bash
 git clone <repo-url> nanobots && cd nanobots
@@ -52,45 +52,45 @@ pnpm install
 pnpm dev
 ```
 
-The gateway starts at `http://localhost:8080`. Open `/web` to configure.
+Gateway 启动后访问 `http://localhost:8080/web` 进行配置。
 
-For gateway-only mode (skip messaging channels, useful for developing the web UI):
+仅启动 Gateway（跳过消息通道，适合开发 Web UI）：
 
 ```bash
 pnpm gateway:dev
 ```
 
-### Verifying the Setup
+### 验证配置
 
-After configuration, you can verify the system status:
+配置完成后可通过以下方式验证：
 
-- **Web UI**: Visit `http://localhost:8080/web` - the wizard shows a green checkmark when all steps are complete
-- **Settings**: Visit `http://localhost:8080/web#settings` to manage OAuth connections and service settings
-- **Logs** (Docker): `docker compose logs -f nanobots`
+- **Web UI**：访问 `http://localhost:8080/web`，向导完成后显示绿色对勾
+- **设置页**：访问 `http://localhost:8080/web#settings` 管理 OAuth 连接和服务设置
+- **日志**（Docker）：`docker compose logs -f nanobots`
 
-## Features
+## 功能
 
-- **Messaging**: WhatsApp (QR code login) + Telegram (Bot Token)
-- **AI Models**: Anthropic Claude, OpenAI, Google Gemini
-- **Google Services**: Calendar and Gmail tools via OAuth
-- **Skills**: 23 built-in skills (weather, summarize, PDF tools, GitHub, email, etc.)
-- **Plugins**: Plugin architecture for adding tools, hooks, and channels
-- **Memory**: Persistent conversation memory across sessions
-- **Web Setup**: Browser-based configuration wizard at port 8080
+- **消息通道**：WhatsApp（二维码登录）+ Telegram（Bot Token）
+- **AI 模型**：Anthropic Claude、OpenAI、Google Gemini
+- **Google 服务**：通过 OAuth 接入日历和 Gmail
+- **Skills**：23 个内置技能（天气、摘要、PDF 工具、GitHub、邮件等）
+- **插件系统**：可扩展的工具、Hook、HTTP 路由和服务
+- **记忆**：跨会话持久化对话记忆
+- **Web 设置**：浏览器端配置向导（端口 8080）
 
-## Configuration
+## 配置
 
-### Environment Variables
+### 环境变量
 
-| Variable                        | Description                | Default       |
-| ------------------------------- | -------------------------- | ------------- |
-| `NANOBOTS_GATEWAY_TOKEN`        | Gateway auth token         | `changeme`    |
-| `NANOBOTS_PORT`                 | HTTP port                  | `8080`        |
-| `NANOBOTS_STATE_DIR`            | Data directory             | `~/.nanobots` |
-| `NANOBOTS_GOOGLE_CLIENT_ID`     | Google OAuth client ID     | -             |
-| `NANOBOTS_GOOGLE_CLIENT_SECRET` | Google OAuth client secret | -             |
+| 变量                            | 说明                    | 默认值        |
+| ------------------------------- | ----------------------- | ------------- |
+| `NANOBOTS_GATEWAY_TOKEN`        | Gateway 认证令牌        | `changeme`    |
+| `NANOBOTS_PORT`                 | HTTP 端口               | `8080`        |
+| `NANOBOTS_STATE_DIR`            | 数据目录                | `~/.nanobots` |
+| `NANOBOTS_GOOGLE_CLIENT_ID`     | Google OAuth 客户端 ID  | -             |
+| `NANOBOTS_GOOGLE_CLIENT_SECRET` | Google OAuth 客户端密钥 | -             |
 
-Legacy `OPENCLAW_*` environment variables are also supported.
+也支持旧版 `OPENCLAW_*` 环境变量。
 
 ### Docker Compose
 
@@ -111,41 +111,41 @@ volumes:
   nanobots-data:
 ```
 
-### Optional: Google Calendar & Gmail
+### 可选：Google 日历和 Gmail
 
-To enable Google services (Calendar events, Gmail), you need a Google OAuth app:
+启用 Google 服务需要创建 Google OAuth 应用：
 
-1. Go to [Google Cloud Console](https://console.cloud.google.com/) > APIs & Services > Credentials
-2. Create an OAuth 2.0 Client ID (Web application)
-3. Add `http://localhost:8080/api/oauth/callback` as an authorized redirect URI
-4. Set the environment variables:
+1. 前往 [Google Cloud Console](https://console.cloud.google.com/) > APIs & Services > Credentials
+2. 创建 OAuth 2.0 客户端 ID（Web application 类型）
+3. 添加 `http://localhost:8080/api/oauth/callback` 为授权重定向 URI
+4. 设置环境变量：
 
 ```bash
 NANOBOTS_GOOGLE_CLIENT_ID=your-client-id
 NANOBOTS_GOOGLE_CLIENT_SECRET=your-client-secret
 ```
 
-5. Connect in the web UI: `http://localhost:8080/web#settings`
+5. 在 Web UI 中连接：`http://localhost:8080/web#settings`
 
-## Development
+## 开发
 
 ```bash
 pnpm install
-pnpm dev          # Start in dev mode (auto-rebuilds)
-pnpm gateway:dev  # Start gateway only (skip channels)
-pnpm test         # Run tests
-pnpm build        # Build for production
+pnpm dev          # 开发模式（自动重新构建）
+pnpm gateway:dev  # 仅启动 Gateway（跳过消息通道）
+pnpm test         # 运行测试
+pnpm build        # 生产构建
 ```
 
-## Architecture
+## 架构
 
-Built on the Pi agent framework with a plugin-based extension system:
+基于 Pi Agent 框架，采用插件化扩展体系：
 
-- **Gateway**: HTTP server serving Web UI, API endpoints, and plugin routes
-- **Channels**: WhatsApp (Baileys) and Telegram (grammY)
-- **Plugins**: Extensions register tools, hooks, HTTP routes, and services
-- **Web Setup**: Browser-based wizard for initial configuration
+- **Gateway**：HTTP 服务器，提供 Web UI、API 端点和插件路由
+- **通道**：WhatsApp (Baileys) 和 Telegram (grammY)
+- **插件**：扩展注册工具、Hook、HTTP 路由和服务
+- **Web 设置**：浏览器端初始配置向导
 
-## License
+## 许可证
 
 MIT

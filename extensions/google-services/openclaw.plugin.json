@@ -1,0 +1,8 @@
+{
+  "id": "google-services",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}

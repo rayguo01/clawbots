@@ -5,15 +5,15 @@ services:
     environment:
       HOME: /home/node
       TERM: xterm-256color
+      NANOBOTS_STATE_DIR: /home/node/.nanobots
       NANOBOTS_GATEWAY_TOKEN: ${NANOBOTS_GATEWAY_TOKEN:-changeme}
     volumes:
-      - nanobots-data:/home/node/.openclaw
-      - nanobots-workspace:/home/node/.openclaw/workspace
+      - nanobots-data:/home/node/.nanobots
+      - nanobots-workspace:/home/node/.nanobots/workspace
     ports:
       - "${NANOBOTS_PORT:-8080}:8080"
     init: true
     restart: unless-stopped
-    command: ["node", "dist/index.js", "gateway", "--bind", "lan", "--allow-unconfigured"]
 
 volumes:
   nanobots-data:

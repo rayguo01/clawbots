@@ -28,6 +28,10 @@
   }
 
   function api(path, opts) {
+    opts = opts || {};
+    if (opts.body && !opts.headers) {
+      opts.headers = { "Content-Type": "application/json" };
+    }
     return fetch(path, opts).then(function (r) {
       return r.json();
     });
@@ -161,24 +165,35 @@
   // ── WhatsApp QR flow ───────────────────────────────────────
   var waPolling = null;
 
-  function startWhatsApp() {
+  function startWhatsApp(force) {
     var qrArea = $("#wa-qr");
     var statusEl = $("#wa-status");
     qrArea.innerHTML = "<p>Generating QR code...</p>";
     statusEl.innerHTML = "";
-    api("/api/setup/whatsapp/qr", { method: "POST" }).then(function (d) {
+    var opts = { method: "POST" };
+    if (force) opts.body = JSON.stringify({ force: true });
+    api("/api/setup/whatsapp/qr", opts).then(function (d) {
       if (d.ok && d.qrDataUrl) {
         qrArea.innerHTML =
           '<img src="' + d.qrDataUrl + '" alt="WhatsApp QR" style="max-width:256px">';
         statusEl.innerHTML =
           '<span class="badge badge-pending">Scan this QR in WhatsApp &rarr; Linked Devices</span>';
         pollWhatsApp();
+      } else if (d.message && d.message.indexOf("already linked") !== -1) {
+        qrArea.innerHTML =
+          '<button class="btn btn-secondary" id="wa-relink">Relink WhatsApp</button>';
+        statusEl.innerHTML = '<span class="badge badge-success">' + esc(d.message) + "</span>";
+        bind("wa-relink", "click", function () {
+          startWhatsApp(true);
+        });
       } else {
         qrArea.innerHTML =
           '<button class="btn btn-secondary" id="wa-start">Generate QR Code</button>';
         statusEl.innerHTML =
           '<span class="badge badge-error">' + esc(d.message || d.error || "Failed") + "</span>";
-        bind("wa-start", "click", startWhatsApp);
+        bind("wa-start", "click", function () {
+          startWhatsApp();
+        });
       }
     });
   }

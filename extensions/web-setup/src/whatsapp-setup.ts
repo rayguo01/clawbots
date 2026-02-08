@@ -1,6 +1,21 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { sendJson } from "./helpers.js";
 
+function readBody(req: IncomingMessage): Promise<Record<string, unknown>> {
+  return new Promise((resolve) => {
+    const chunks: Buffer[] = [];
+    req.on("data", (chunk: Buffer) => chunks.push(chunk));
+    req.on("end", () => {
+      try {
+        resolve(JSON.parse(Buffer.concat(chunks).toString("utf-8")));
+      } catch {
+        resolve({});
+      }
+    });
+    req.on("error", () => resolve({}));
+  });
+}
+
 /**
  * POST /api/setup/whatsapp/qr
  * Starts a WhatsApp login flow and returns a QR code as base64 data URL.
@@ -15,7 +30,9 @@ export async function handleWhatsAppQr(req: IncomingMessage, res: ServerResponse
   try {
     // Lazy-import to avoid loading heavy Baileys dependencies at plugin registration time
     const { startWebLoginWithQr } = await import("openclaw/plugin-sdk");
-    const result = await startWebLoginWithQr({ force: false, timeoutMs: 30_000 });
+    const body = await readBody(req);
+    const force = body.force === true;
+    const result = await startWebLoginWithQr({ force, timeoutMs: 30_000 });
     sendJson(res, 200, {
       ok: true,
       qrDataUrl: result.qrDataUrl ?? null,

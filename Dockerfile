@@ -7,12 +7,11 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY patches ./patches
 COPY scripts ./scripts
-COPY extensions/*/package.json ./extensions/
-# Restore extension paths: pnpm needs the full directory structure
-RUN for f in extensions/*.json; do \
-      dir="extensions/$(basename "$f" .json)"; \
-      mkdir -p "$dir" && mv "$f" "$dir/package.json"; \
-    done
+COPY extensions/google-services/package.json ./extensions/google-services/
+COPY extensions/memory-core/package.json ./extensions/memory-core/
+COPY extensions/telegram/package.json ./extensions/telegram/
+COPY extensions/web-setup/package.json ./extensions/web-setup/
+COPY extensions/whatsapp/package.json ./extensions/whatsapp/
 
 RUN pnpm install --frozen-lockfile
 

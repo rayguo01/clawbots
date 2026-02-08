@@ -2,6 +2,7 @@ import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
 import { getSetupStatus } from "./config-bridge.js";
 import { sendJson } from "./helpers.js";
 import { handleModelSave } from "./model-setup.js";
+import { registerOAuthRoutes } from "./oauth/routes.js";
 import { handleTelegramSave, handleTelegramVerify } from "./telegram-setup.js";
 import { handleWhatsAppQr, handleWhatsAppStatus } from "./whatsapp-setup.js";
 
@@ -25,4 +26,7 @@ export function registerApiRoutes(api: OpenClawPluginApi): void {
 
   // Model
   api.registerHttpRoute({ path: "/api/setup/model/save", handler: handleModelSave });
+
+  // OAuth
+  registerOAuthRoutes(api);
 }

@@ -7,9 +7,11 @@
 
   var state = {
     step: 1,
+    page: "setup", // "setup" or "settings"
     telegram: { botToken: "", userId: "", verified: false, botName: "" },
     whatsapp: { configured: false },
     model: { provider: "anthropic", model: "claude-sonnet-4-5-20250929", apiKey: "" },
+    oauthProviders: [],
   };
 
   // ── helpers ────────────────────────────────────────────────
@@ -31,7 +33,18 @@
     });
   }
 
-  // ── render dispatch ────────────────────────────────────────
+  // ── route dispatch ──────────────────────────────────────────
+  function route() {
+    var hash = window.location.hash.replace("#", "");
+    if (hash === "settings") {
+      state.page = "settings";
+      renderSettings();
+    } else {
+      state.page = "setup";
+      render();
+    }
+  }
+
   function render() {
     switch (state.step) {
       case 1:
@@ -274,8 +287,143 @@
       "<h2>Setup Complete!</h2>" +
       "<p>Your Nanobots agent is ready.</p>" +
       "<p>Go chat on WhatsApp or Telegram!</p>" +
+      '<div style="margin-top:24px">' +
+      '<a href="#settings" class="btn btn-secondary">Manage Services</a>' +
+      "</div>" +
       "</div>" +
       "</div>";
+  }
+
+  // ── Settings page (OAuth service management) ──────────────
+  function renderSettings() {
+    app.innerHTML =
+      '<div class="container">' +
+      '<div class="settings-header">' +
+      '<a href="#" class="btn btn-secondary btn-sm">&larr; Setup</a>' +
+      "<h1>Services</h1>" +
+      '<p class="subtitle">Connect external services for your AI agent</p>' +
+      "</div>" +
+      '<div id="services-list"><p>Loading...</p></div>' +
+      "</div>";
+
+    loadOAuthProviders();
+  }
+
+  function loadOAuthProviders() {
+    api("/api/oauth/providers")
+      .then(function (data) {
+        state.oauthProviders = data.providers || [];
+        renderServiceCards();
+      })
+      .catch(function () {
+        var el = $("#services-list");
+        if (el) el.innerHTML = '<p class="badge badge-error">Failed to load services</p>';
+      });
+  }
+
+  function renderServiceCards() {
+    var el = $("#services-list");
+    if (!el) return;
+
+    if (!state.oauthProviders.length) {
+      el.innerHTML = '<div class="card"><p>No services available yet.</p></div>';
+      return;
+    }
+
+    var html = "";
+    for (var i = 0; i < state.oauthProviders.length; i++) {
+      var p = state.oauthProviders[i];
+      html += renderServiceCard(p);
+    }
+    el.innerHTML = html;
+
+    // Bind buttons
+    for (var j = 0; j < state.oauthProviders.length; j++) {
+      var prov = state.oauthProviders[j];
+      if (prov.connected) {
+        bindDisconnect(prov.id);
+      } else if (prov.configured) {
+        bindConnect(prov.id);
+      }
+    }
+  }
+
+  function renderServiceCard(provider) {
+    var statusBadge = provider.connected
+      ? '<span class="badge badge-success">Connected</span>'
+      : provider.configured
+        ? '<span class="badge badge-pending">Not connected</span>'
+        : '<span class="badge badge-error">Not configured</span>';
+
+    var actionBtn = "";
+    if (provider.connected) {
+      actionBtn =
+        '<button class="btn btn-danger btn-sm" id="svc-disconnect-' +
+        esc(provider.id) +
+        '">Disconnect</button>';
+    } else if (provider.configured) {
+      actionBtn =
+        '<button class="btn btn-primary btn-sm" id="svc-connect-' +
+        esc(provider.id) +
+        '">Connect</button>';
+    } else {
+      actionBtn =
+        '<p class="hint">Set NANOBOTS_GOOGLE_CLIENT_ID and NANOBOTS_GOOGLE_CLIENT_SECRET env vars to enable.</p>';
+    }
+
+    var scopeList = "";
+    if (provider.scopes && provider.scopes.length) {
+      var labels = provider.scopes.map(function (s) {
+        // Shorten Google scope URLs to readable labels
+        var parts = s.split("/");
+        return parts[parts.length - 1];
+      });
+      scopeList = '<div class="hint">Scopes: ' + esc(labels.join(", ")) + "</div>";
+    }
+
+    return (
+      '<div class="card service-card">' +
+      '<div class="service-header">' +
+      "<h2>" +
+      esc(provider.name) +
+      "</h2>" +
+      statusBadge +
+      "</div>" +
+      scopeList +
+      '<div class="actions">' +
+      actionBtn +
+      "</div>" +
+      "</div>"
+    );
+  }
+
+  function bindConnect(providerId) {
+    bind("svc-connect-" + providerId, "click", function () {
+      api("/api/oauth/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider: providerId }),
+      }).then(function (d) {
+        if (d.ok && d.url) {
+          window.location.href = d.url;
+        } else {
+          alert(d.error || "Failed to start OAuth flow");
+        }
+      });
+    });
+  }
+
+  function bindDisconnect(providerId) {
+    bind("svc-disconnect-" + providerId, "click", function () {
+      if (!confirm("Disconnect " + providerId + "?")) return;
+      api("/api/oauth/disconnect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider: providerId }),
+      }).then(function () {
+        loadOAuthProviders();
+      });
+    });
   }
 
   // ── util ──────────────────────────────────────────────────
@@ -300,6 +448,8 @@
   }
 
   // ── init ──────────────────────────────────────────────────
+  window.addEventListener("hashchange", route);
+
   api("/api/setup/status")
     .then(function (data) {
       state.step = data.currentStep || 1;
@@ -312,10 +462,10 @@
       if (data.model && data.model.defaultModel) {
         state.model.model = data.model.defaultModel;
       }
-      render();
+      route();
     })
     .catch(function () {
       state.step = 1;
-      render();
+      route();
     });
 })();

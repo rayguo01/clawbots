@@ -165,3 +165,27 @@ h1 {
 .hidden {
   display: none;
 }
+
+/* Settings page */
+.settings-header {
+  margin-bottom: 24px;
+}
+.settings-header h1 {
+  margin-top: 16px;
+}
+.btn-sm {
+  padding: 6px 14px;
+  font-size: 12px;
+}
+.service-card .service-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.service-card .service-header h2 {
+  margin-bottom: 0;
+}
+a.btn {
+  text-decoration: none;
+}

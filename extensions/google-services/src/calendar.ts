@@ -1,6 +1,6 @@
+import type { AnyAgentTool } from "openclaw/plugin-sdk";
 import { Type } from "@sinclair/typebox";
-import type { AnyAgentTool } from "../../../src/agents/tools/common.js";
-import { jsonResult } from "../../../src/agents/tools/common.js";
+import { jsonResult } from "openclaw/plugin-sdk";
 import { googleFetch } from "./google-api.js";
 
 const CALENDAR_BASE = "/calendar/v3";

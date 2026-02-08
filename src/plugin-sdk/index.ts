@@ -73,6 +73,9 @@ export { normalizePluginHttpPath } from "../plugins/http-path.js";
 export { registerPluginHttpRoute } from "../plugins/http-registry.js";
 export { emptyPluginConfigSchema } from "../plugins/config-schema.js";
 export type { OpenClawConfig } from "../config/config.js";
+export { loadConfig, readConfigFileSnapshot, writeConfigFile } from "../config/config.js";
+export { resolveConfigPath, resolveStateDir } from "../config/config.js";
+export type { AnyAgentTool } from "../agents/tools/common.js";
 export type { ChannelDock } from "../channels/dock.js";
 export { getChatChannelMeta } from "../channels/registry.js";
 export type {

@@ -44,7 +44,7 @@ export async function resolveGatewayRuntimeConfig(params: {
   const customBindHost = params.cfg.gateway?.customBindHost;
   const bindHost = params.host ?? (await resolveGatewayBindHost(bindMode, customBindHost));
   const controlUiEnabled =
-    params.controlUiEnabled ?? params.cfg.gateway?.controlUi?.enabled ?? true;
+    params.controlUiEnabled ?? params.cfg.gateway?.controlUi?.enabled ?? false;
   const openAiChatCompletionsEnabled =
     params.openAiChatCompletionsEnabled ??
     params.cfg.gateway?.http?.endpoints?.chatCompletions?.enabled ??

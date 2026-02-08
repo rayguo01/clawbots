@@ -1,18 +1,19 @@
 import { describe, expect, it, vi } from "vitest";
 
 // Mock the config module before importing config-bridge
-vi.mock("../../../src/config/io.js", () => ({
-  loadConfig: vi.fn(() => ({})),
-  readConfigFileSnapshot: vi.fn(async () => ({ config: {} })),
-  writeConfigFile: vi.fn(async () => {}),
-}));
+vi.mock("openclaw/plugin-sdk", async () => {
+  const actual = await vi.importActual("openclaw/plugin-sdk");
+  return {
+    ...actual,
+    loadConfig: vi.fn(() => ({})),
+    readConfigFileSnapshot: vi.fn(async () => ({ config: {} })),
+    writeConfigFile: vi.fn(async () => {}),
+    resolveConfigPath: vi.fn(() => "/tmp/test-nanobots.json"),
+    resolveStateDir: vi.fn(() => "/tmp"),
+  };
+});
 
-vi.mock("../../../src/config/paths.js", () => ({
-  resolveConfigPath: vi.fn(() => "/tmp/test-nanobots.json"),
-  resolveStateDir: vi.fn(() => "/tmp"),
-}));
-
-import { loadConfig } from "../../../src/config/io.js";
+import { loadConfig } from "openclaw/plugin-sdk";
 import { getSetupStatus } from "./config-bridge.js";
 
 describe("getSetupStatus", () => {

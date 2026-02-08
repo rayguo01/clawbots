@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { resolveStateDir } from "../../../../src/config/paths.js";
+import { resolveStateDir } from "openclaw/plugin-sdk";
 
 const OAUTH_DIR = path.join(resolveStateDir(), "oauth_tokens");
 

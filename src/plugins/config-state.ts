@@ -13,7 +13,13 @@ export type NormalizedPluginsConfig = {
   entries: Record<string, { enabled?: boolean; config?: unknown }>;
 };
 
-export const BUNDLED_ENABLED_BY_DEFAULT = new Set<string>();
+export const BUNDLED_ENABLED_BY_DEFAULT = new Set<string>([
+  "web-setup",
+  "telegram",
+  "whatsapp",
+  "google-services",
+  "memory-core",
+]);
 
 const normalizeList = (value: unknown): string[] => {
   if (!Array.isArray(value)) {

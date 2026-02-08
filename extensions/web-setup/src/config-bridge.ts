@@ -1,8 +1,8 @@
+import type { OpenClawConfig } from "openclaw/plugin-sdk";
 import fs from "node:fs";
 import path from "node:path";
-import type { OpenClawConfig } from "../../../src/config/types.openclaw.js";
-import { loadConfig, readConfigFileSnapshot, writeConfigFile } from "../../../src/config/io.js";
-import { resolveConfigPath, resolveStateDir } from "../../../src/config/paths.js";
+import { loadConfig, readConfigFileSnapshot, writeConfigFile } from "openclaw/plugin-sdk";
+import { resolveConfigPath, resolveStateDir } from "openclaw/plugin-sdk";
 
 export type SetupStatus = {
   configured: boolean;

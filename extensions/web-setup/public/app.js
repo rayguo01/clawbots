@@ -12,7 +12,10 @@
     whatsapp: { configured: false },
     model: { provider: "google", model: "gemini-3-pro", apiKey: "" },
     oauthProviders: [],
-    skills: { "nano-banana-pro": { configured: false, apiKey: "" } },
+    skills: {
+      "nano-banana-pro": { configured: false, apiKey: "" },
+      "oura-ring": { configured: false, apiKey: "" },
+    },
   };
 
   // ── helpers ────────────────────────────────────────────────
@@ -626,6 +629,50 @@
       '<div class="hint"><strong>功能：</strong>步行/驾车/骑行路线规划、时间预算、可行性检查、路线优化建议</div>' +
       '<div class="hint"><strong>配置：</strong>由管理员设置 CAMINO_API_KEY 环境变量</div>' +
       "</div>" +
+      // ── Luma Events card ──
+      '<div class="card">' +
+      '<div class="service-header">' +
+      "<h2>🎯 活动发现 (Luma Events)</h2>" +
+      '<span class="badge badge-success" id="luma-badge">加载中...</span>' +
+      "</div>" +
+      '<p class="hint" style="margin-bottom:12px">从 lu.ma 获取全球城市的科技活动、创业聚会、行业会议等信息。说"新加坡最近有什么活动"即可触发。</p>' +
+      '<div class="hint"><strong>功能：</strong>多城市活动搜索、日期过滤、票务信息（免费/付费/剩余名额）、主办方信息</div>' +
+      '<div class="hint"><strong>覆盖：</strong>新加坡、雅加达、曼谷、班加罗尔、旧金山、纽约、伦敦、迪拜等全球主要城市</div>' +
+      '<div class="hint"><strong>特点：</strong>无需 API Key，直接从 lu.ma 公开页面提取数据</div>' +
+      "</div>" +
+      // ── TopHub Trends card ──
+      '<div class="card">' +
+      '<div class="service-header">' +
+      "<h2>🔥 热榜追踪 (TopHub Trends)</h2>" +
+      '<span class="badge badge-success" id="tophub-badge">加载中...</span>' +
+      "</div>" +
+      '<p class="hint" style="margin-bottom:12px">实时获取知乎、微博、B站、抖音等中文平台热榜，分析热点趋势，提供内容创作选题建议。说"今天有什么热点"即可触发。</p>' +
+      '<div class="hint"><strong>数据源：</strong>TopHub 聚合热榜（知乎、微博、B站、抖音、百度、头条等）</div>' +
+      '<div class="hint"><strong>功能：</strong>热点趋势分析、话题分类、高潜力话题筛选、内容选题建议</div>' +
+      '<div class="hint"><strong>特点：</strong>无需 API Key，纯公开数据抓取</div>' +
+      "</div>" +
+      // ── World News Trends card ──
+      '<div class="card">' +
+      '<div class="service-header">' +
+      "<h2>🌍 国际新闻 (World News Trends)</h2>" +
+      '<span class="badge badge-success" id="worldnews-badge">加载中...</span>' +
+      "</div>" +
+      '<p class="hint" style="margin-bottom:12px">聚合 BBC、Al Jazeera、CNA、TechCrunch 等国际主流媒体 RSS，实时获取全球热点新闻。说"最近国际上有什么大事"即可触发。</p>' +
+      '<div class="hint"><strong>数据源：</strong>BBC (World/Asia/Tech/Business/Science)、Al Jazeera、CNA (Channel NewsAsia)、TechCrunch、Ars Technica</div>' +
+      '<div class="hint"><strong>功能：</strong>多源并行抓取、自动去重、按分区过滤（world/asia/tech/business/science）</div>' +
+      '<div class="hint"><strong>特点：</strong>无需 API Key，纯公开 RSS feed</div>' +
+      "</div>" +
+      // ── Humanizer card ──
+      '<div class="card">' +
+      '<div class="service-header">' +
+      "<h2>✍️ 去AI味 (Humanizer)</h2>" +
+      '<span class="badge badge-success" id="humanizer-badge">加载中...</span>' +
+      "</div>" +
+      '<p class="hint" style="margin-bottom:12px">去除文本中的 AI 生成痕迹，使文章更自然、更有人味。发送文章并说"帮我去AI味"即可触发。</p>' +
+      '<div class="hint"><strong>功能：</strong>24 种 AI 写作模式检测、智能改写、爆款 6 维度评分、人味 5 维度评分</div>' +
+      '<div class="hint"><strong>适用：</strong>公众号文章、社交媒体文案、营销内容、博客文章等中文内容润色</div>' +
+      '<div class="hint"><strong>特点：</strong>纯 AI 驱动，无额外依赖</div>' +
+      "</div>" +
       // ── Voice message card ──
       '<div class="card">' +
       '<div class="service-header">' +
@@ -637,9 +684,78 @@
       '<div class="hint"><strong>支持格式：</strong>OGG、MP3、M4A、WAV 等常见音频格式</div>' +
       '<div class="hint"><strong>费用：</strong>使用已配置的 Gemini API Key，每条语音约 $0.001（几乎免费）</div>' +
       "</div>" +
+      // ── Oura Ring card ──
+      '<div class="card">' +
+      '<div class="service-header">' +
+      "<h2>💍 Oura 智能戒指 (Oura Ring)</h2>" +
+      '<span class="badge badge-success" id="oura-badge">加载中...</span>' +
+      "</div>" +
+      '<p class="hint" style="margin-bottom:12px">同步 Oura Ring 健康数据 — 睡眠、准备度、活动、心率、压力、血氧、运动记录。</p>' +
+      '<div class="hint"><strong>数据：</strong>睡眠评分/阶段、身体准备度、步数/卡路里、静息心率、压力水平、血氧 SpO2、运动日志</div>' +
+      '<div class="hint"><strong>触发：</strong>说"我昨晚睡得怎么样""今天的运动数据""这周的健康状况"等</div>' +
+      '<div class="field" style="margin-top:12px">' +
+      "<label>Oura Personal Access Token</label>" +
+      '<input type="password" id="oura-apikey" placeholder="粘贴你的 Oura Token">' +
+      '<div class="hint">从 <a href="https://cloud.ouraring.com/personal-access-tokens" target="_blank">cloud.ouraring.com/personal-access-tokens</a> 获取 Token</div>' +
+      "</div>" +
+      '<div id="oura-status" class="status-msg"></div>' +
+      '<div class="actions">' +
+      '<button class="btn btn-primary" id="oura-save">保存</button>' +
+      "</div>" +
+      "</div>" +
+      // ── Baoyu Visual Skills section ──
+      '<div class="card">' +
+      '<div class="service-header">' +
+      "<h2>🎨 视觉创作 (Baoyu Skills)</h2>" +
+      "</div>" +
+      '<p class="hint" style="margin-bottom:12px">文章配图、信息图、小红书图文、封面图生成。依赖图片生成（Nano Banana Pro）。</p>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">' +
+      '<div class="hint">📖 文章配图 <span class="badge badge-success" id="baoyu-illustrator-badge">加载中...</span></div>' +
+      '<div class="hint">📊 信息图 <span class="badge badge-success" id="baoyu-infographic-badge">加载中...</span></div>' +
+      '<div class="hint">📕 小红书图文 <span class="badge badge-success" id="baoyu-xhs-badge">加载中...</span></div>' +
+      '<div class="hint">🖼️ 封面图 <span class="badge badge-success" id="baoyu-cover-badge">加载中...</span></div>' +
+      "</div>" +
+      '<div class="hint"><strong>触发：</strong>说"为文章配图""生成信息图""做小红书图片""生成封面图"</div>' +
+      '<div class="hint"><strong>依赖：</strong>需要已配置 Gemini API Key（图片生成）</div>' +
+      "</div>" +
+      // ── Baoyu Utility Skills section ──
+      '<div class="card">' +
+      '<div class="service-header">' +
+      "<h2>🔧 网页/推文抓取 (Baoyu Tools)</h2>" +
+      "</div>" +
+      '<p class="hint" style="margin-bottom:12px">将网页或 X(Twitter) 内容转为 Markdown 格式保存。</p>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">' +
+      '<div class="hint">🌐 网页转 Markdown <span class="badge badge-success" id="baoyu-url-badge">加载中...</span></div>' +
+      '<div class="hint">🐦 推文转 Markdown <span class="badge badge-success" id="baoyu-x-badge">加载中...</span></div>' +
+      "</div>" +
+      '<div class="hint"><strong>触发：</strong>发送网址说"保存这个网页"或"帮我保存这条推文"</div>' +
+      '<div class="hint"><strong>依赖：</strong>bun 运行时 + Chromium（网页抓取需要）</div>' +
+      "</div>" +
+      // ── Marketing Skills section ──
+      '<div class="card">' +
+      '<div class="service-header">' +
+      "<h2>📝 内容营销 (Marketing Skills)</h2>" +
+      '<span class="badge badge-success" id="marketing-badge">加载中...</span>' +
+      "</div>" +
+      '<p class="hint" style="margin-bottom:12px">10 个营销策略技能，涵盖文案、心理学、定价、发布、社交等。纯文本对话，无需额外配置。</p>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">' +
+      '<div class="hint">✏️ 文案编辑 (Copy Editing)</div>' +
+      '<div class="hint">📝 文案写作 (Copywriting)</div>' +
+      '<div class="hint">🧠 营销心理学 (Marketing Psychology)</div>' +
+      '<div class="hint">💡 营销创意 (Marketing Ideas)</div>' +
+      '<div class="hint">📱 社交内容 (Social Content)</div>' +
+      '<div class="hint">💰 定价策略 (Pricing Strategy)</div>' +
+      '<div class="hint">📈 页面优化 (Page CRO)</div>' +
+      '<div class="hint">🚀 发布策略 (Launch Strategy)</div>' +
+      '<div class="hint">🎯 用户引导 (Onboarding CRO)</div>' +
+      '<div class="hint">📧 邮件序列 (Email Sequence)</div>' +
+      "</div>" +
+      '<div class="hint"><strong>触发：</strong>说"帮我改文案""营销策略""定价建议""写发布计划"等</div>' +
+      "</div>" +
       "</div>";
 
     bind("skill-save", "click", saveSkill);
+    bind("oura-save", "click", saveOuraKey);
 
     // Load current status
     api("/api/setup/skills/status").then(function (d) {
@@ -734,6 +850,50 @@
           travelBadge.textContent = "未配置";
         }
       }
+      // Humanizer badge
+      var humanizerBadge = document.getElementById("humanizer-badge");
+      if (humanizerBadge) {
+        if (d && d["humanizer"] && d["humanizer"].configured) {
+          humanizerBadge.className = "badge badge-success";
+          humanizerBadge.textContent = "已就绪 ✓";
+        } else {
+          humanizerBadge.className = "badge badge-error";
+          humanizerBadge.textContent = "未就绪";
+        }
+      }
+      // World News Trends badge
+      var worldnewsBadge = document.getElementById("worldnews-badge");
+      if (worldnewsBadge) {
+        if (d && d["world-news-trends"] && d["world-news-trends"].configured) {
+          worldnewsBadge.className = "badge badge-success";
+          worldnewsBadge.textContent = "已就绪 ✓";
+        } else {
+          worldnewsBadge.className = "badge badge-error";
+          worldnewsBadge.textContent = "缺少 Python3";
+        }
+      }
+      // TopHub Trends badge
+      var tophubBadge = document.getElementById("tophub-badge");
+      if (tophubBadge) {
+        if (d && d["tophub-trends"] && d["tophub-trends"].configured) {
+          tophubBadge.className = "badge badge-success";
+          tophubBadge.textContent = "已就绪 ✓";
+        } else {
+          tophubBadge.className = "badge badge-error";
+          tophubBadge.textContent = "缺少 Python3";
+        }
+      }
+      // Luma Events badge
+      var lumaBadge = document.getElementById("luma-badge");
+      if (lumaBadge) {
+        if (d && d["luma"] && d["luma"].configured) {
+          lumaBadge.className = "badge badge-success";
+          lumaBadge.textContent = "已就绪 ✓";
+        } else {
+          lumaBadge.className = "badge badge-error";
+          lumaBadge.textContent = "缺少 Python3";
+        }
+      }
       // Voice message badge
       var voiceBadge = document.getElementById("voice-badge");
       if (voiceBadge) {
@@ -744,6 +904,61 @@
           voiceBadge.className = "badge badge-error";
           voiceBadge.textContent = "未启用";
         }
+      }
+      // Oura Ring badge
+      var ouraBadge = document.getElementById("oura-badge");
+      if (ouraBadge) {
+        if (d && d["oura-ring"] && d["oura-ring"].configured) {
+          ouraBadge.className = "badge badge-success";
+          ouraBadge.textContent = "已配置 ✓";
+          var ouraInput = document.getElementById("oura-apikey");
+          if (ouraInput) ouraInput.placeholder = "已配置（重新输入可覆盖）";
+        } else {
+          ouraBadge.className = "badge badge-error";
+          ouraBadge.textContent = "未配置";
+        }
+      }
+      // Baoyu visual skills badges
+      var baoyuVisualMap = {
+        "baoyu-article-illustrator": "baoyu-illustrator-badge",
+        "baoyu-infographic": "baoyu-infographic-badge",
+        "baoyu-xhs-images": "baoyu-xhs-badge",
+        "baoyu-cover-image": "baoyu-cover-badge",
+      };
+      for (var bk in baoyuVisualMap) {
+        var bBadge = document.getElementById(baoyuVisualMap[bk]);
+        if (bBadge) {
+          if (d && d[bk] && d[bk].configured) {
+            bBadge.className = "badge badge-success";
+            bBadge.textContent = "就绪 ✓";
+          } else {
+            bBadge.className = "badge badge-error";
+            bBadge.textContent = "需配置图片生成";
+          }
+        }
+      }
+      // Baoyu utility skills badges
+      var baoyuUtilMap = {
+        "baoyu-url-to-markdown": "baoyu-url-badge",
+        "baoyu-danger-x-to-markdown": "baoyu-x-badge",
+      };
+      for (var uk in baoyuUtilMap) {
+        var uBadge = document.getElementById(baoyuUtilMap[uk]);
+        if (uBadge) {
+          if (d && d[uk] && d[uk].configured) {
+            uBadge.className = "badge badge-success";
+            uBadge.textContent = "就绪 ✓";
+          } else {
+            uBadge.className = "badge badge-error";
+            uBadge.textContent = "需安装依赖";
+          }
+        }
+      }
+      // Marketing skills badge
+      var mktBadge = document.getElementById("marketing-badge");
+      if (mktBadge) {
+        mktBadge.className = "badge badge-success";
+        mktBadge.textContent = "已就绪 ✓";
       }
     });
   }
@@ -773,6 +988,37 @@
           }
         }
         var input = document.getElementById("skill-apikey");
+        if (input) {
+          input.value = "";
+          input.placeholder = "已配置（重新输入可覆盖）";
+        }
+      } else {
+        statusEl.innerHTML =
+          '<span class="badge badge-error">' + esc(d.error || "保存失败") + "</span>";
+      }
+    });
+  }
+
+  function saveOuraKey() {
+    var apiKeyVal = v("oura-apikey");
+    var statusEl = $("#oura-status");
+    if (!apiKeyVal) {
+      statusEl.innerHTML = '<span class="badge badge-error">请输入 Token</span>';
+      return;
+    }
+    statusEl.innerHTML = "保存中...";
+    api("/api/setup/skills/save", {
+      method: "POST",
+      body: JSON.stringify({ "oura-ring": { apiKey: apiKeyVal } }),
+    }).then(function (d) {
+      if (d.ok) {
+        statusEl.innerHTML = '<span class="badge badge-success">已保存!</span>';
+        var ouraBadge = document.getElementById("oura-badge");
+        if (ouraBadge) {
+          ouraBadge.className = "badge badge-success";
+          ouraBadge.textContent = "已配置 ✓";
+        }
+        var input = document.getElementById("oura-apikey");
         if (input) {
           input.value = "";
           input.placeholder = "已配置（重新输入可覆盖）";

@@ -3,6 +3,7 @@ import { execSync } from "node:child_process";
 import { bumpSkillsSnapshotVersion, loadConfig } from "openclaw/plugin-sdk";
 import { updateConfig } from "./config-bridge.js";
 import { readJsonBody, sendJson } from "./helpers.js";
+import { loadToken } from "./oauth/store.js";
 
 function hasBinary(name: string): boolean {
   try {
@@ -42,6 +43,12 @@ export async function handleSkillsStatus(
       !!process.env.NANOBOTS_USDA_API_KEY && process.env.NANOBOTS_USDA_API_KEY !== "DEMO_KEY";
     const hasUv = hasBinary("uv");
 
+    const ouraEntry = config.skills?.entries?.["oura-ring"];
+    const hasOuraKey = !!ouraEntry?.apiKey || !!process.env.OURA_TOKEN;
+
+    const hasGitHubOAuth = !!(await loadToken("github"));
+    const hasTwitterOAuth = !!(await loadToken("twitter"));
+
     sendJson(res, 200, {
       "nano-banana-pro": { configured: hasApiKey || hasEnvKey },
       ezbookkeeping: { configured: !!ezbUrl },
@@ -52,6 +59,32 @@ export async function handleSkillsStatus(
       "ai-news-collector": { configured: true },
       "deep-research": { configured: (hasApiKey || hasEnvKey) && hasBinary("uv") },
       "travel-planner": { configured: hasCaminoKey },
+      luma: { configured: hasPython },
+      "tophub-trends": { configured: hasPython },
+      "world-news-trends": { configured: hasPython },
+      humanizer: { configured: true },
+      "oura-ring": { configured: hasOuraKey && hasUv },
+      "contract-agent": { configured: true },
+      shipcast: { configured: hasGitHubOAuth && hasTwitterOAuth },
+      // Baoyu visual skills — depend on nano-banana-pro for image generation
+      "baoyu-article-illustrator": { configured: hasApiKey || hasEnvKey },
+      "baoyu-infographic": { configured: hasApiKey || hasEnvKey },
+      "baoyu-xhs-images": { configured: hasApiKey || hasEnvKey },
+      "baoyu-cover-image": { configured: hasApiKey || hasEnvKey },
+      // Baoyu utility skills — need bun runtime
+      "baoyu-danger-x-to-markdown": { configured: hasBinary("bun") },
+      "baoyu-url-to-markdown": { configured: hasBinary("bun") && hasBinary("chromium") },
+      // Marketing skills — pure text, always available
+      "copy-editing": { configured: true },
+      copywriting: { configured: true },
+      "marketing-psychology": { configured: true },
+      "marketing-ideas": { configured: true },
+      "social-content": { configured: true },
+      "pricing-strategy": { configured: true },
+      "page-cro": { configured: true },
+      "launch-strategy": { configured: true },
+      "onboarding-cro": { configured: true },
+      "email-sequence": { configured: true },
     });
   } catch {
     sendJson(res, 200, {
@@ -64,9 +97,35 @@ export async function handleSkillsStatus(
       "ai-news-collector": { configured: true },
       "deep-research": { configured: false },
       "travel-planner": { configured: false },
+      luma: { configured: false },
+      "tophub-trends": { configured: false },
+      "world-news-trends": { configured: false },
+      humanizer: { configured: true },
+      "oura-ring": { configured: false },
+      "contract-agent": { configured: true },
+      shipcast: { configured: false },
+      "baoyu-article-illustrator": { configured: false },
+      "baoyu-infographic": { configured: false },
+      "baoyu-xhs-images": { configured: false },
+      "baoyu-cover-image": { configured: false },
+      "baoyu-danger-x-to-markdown": { configured: false },
+      "baoyu-url-to-markdown": { configured: false },
+      "copy-editing": { configured: true },
+      copywriting: { configured: true },
+      "marketing-psychology": { configured: true },
+      "marketing-ideas": { configured: true },
+      "social-content": { configured: true },
+      "pricing-strategy": { configured: true },
+      "page-cro": { configured: true },
+      "launch-strategy": { configured: true },
+      "onboarding-cro": { configured: true },
+      "email-sequence": { configured: true },
     });
   }
 }
+
+// Skills whose API keys can be saved via the WebUI
+const SAVEABLE_SKILLS = new Set(["nano-banana-pro", "oura-ring"]);
 
 export async function handleSkillsSave(req: IncomingMessage, res: ServerResponse): Promise<void> {
   if (req.method !== "POST") {
@@ -76,22 +135,31 @@ export async function handleSkillsSave(req: IncomingMessage, res: ServerResponse
   }
 
   const body = (await readJsonBody(req)) as Record<string, { apiKey?: string }>;
-  const bananaEntry = body?.["nano-banana-pro"];
 
-  if (!bananaEntry?.apiKey?.trim()) {
+  // Collect all valid skill API keys from the request
+  const updates: Array<{ skillName: string; apiKey: string }> = [];
+  for (const skillName of SAVEABLE_SKILLS) {
+    const entry = body?.[skillName];
+    if (entry?.apiKey?.trim()) {
+      updates.push({ skillName, apiKey: entry.apiKey.trim() });
+    }
+  }
+
+  if (updates.length === 0) {
     sendJson(res, 400, { ok: false, error: "apiKey is required" });
     return;
   }
 
   try {
-    const apiKey = bananaEntry.apiKey.trim();
     await updateConfig((config) => {
       config.skills ??= {};
       config.skills.entries ??= {};
-      config.skills.entries["nano-banana-pro"] = {
-        ...config.skills.entries["nano-banana-pro"],
-        apiKey,
-      };
+      for (const { skillName, apiKey } of updates) {
+        config.skills.entries[skillName] = {
+          ...config.skills.entries[skillName],
+          apiKey,
+        };
+      }
       return config;
     });
 

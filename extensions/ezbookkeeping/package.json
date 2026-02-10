@@ -1,0 +1,14 @@
+{
+  "name": "@nanobots/ezbookkeeping",
+  "version": "2026.2.9",
+  "description": "ezBookkeeping integration for nanobots",
+  "type": "module",
+  "devDependencies": {
+    "nanobots": "workspace:*"
+  },
+  "nanobots": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

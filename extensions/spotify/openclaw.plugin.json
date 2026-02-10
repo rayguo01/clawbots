@@ -1,0 +1,8 @@
+{
+  "id": "spotify",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}

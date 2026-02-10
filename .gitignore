@@ -71,3 +71,8 @@ USER.md
 
 # local tooling
 .serena/
+
+# Nanobots local data
+.nanobots/
+.clawhub/
+temp/

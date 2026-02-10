@@ -1,0 +1,14 @@
+{
+  "name": "@nanobots/amap",
+  "version": "2026.2.9",
+  "description": "Amap (高德地图) place search tools for nanobots",
+  "type": "module",
+  "devDependencies": {
+    "nanobots": "workspace:*"
+  },
+  "nanobots": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

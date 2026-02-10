@@ -70,6 +70,9 @@ export async function getValidToken(
   const token = await loadToken(provider);
   if (!token) return null;
 
+  // Token never expires (e.g. Todoist)
+  if (token.expiresAt >= Number.MAX_SAFE_INTEGER - 60_000) return token;
+
   // Token still valid (with 60s buffer)
   if (Date.now() < token.expiresAt - 60_000) return token;
 

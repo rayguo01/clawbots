@@ -1,0 +1,8 @@
+{
+  "id": "dropbox",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}

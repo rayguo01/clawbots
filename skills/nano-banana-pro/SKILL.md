@@ -1,6 +1,6 @@
 ---
 name: nano-banana-pro
-description: Generate or edit images via Gemini 3 Pro Image (Nano Banana Pro).
+description: Generate or edit images via Gemini 3 Pro Image (Nano Banana Pro). 关键词：生成图片、画图、修图、AI绘画、图片编辑。
 homepage: https://ai.google.dev/
 metadata:
   {
@@ -45,6 +45,18 @@ Multi-image composition (up to 14 images)
 uv run {baseDir}/scripts/generate_image.py --prompt "combine these into one scene" --filename "output.png" -i img1.png -i img2.png -i img3.png
 ```
 
+Sending the image
+
+After running the script, the stdout will contain a line like `IMAGE_PATH: /path/to/output.png`.
+**You MUST use the message tool** to send the image back to the user:
+
+```
+message(action="send", filePath="/path/to/output.png", message="your caption")
+```
+
+Do NOT include the file path as text in your reply. Do NOT rely on MEDIA: tokens.
+Always use the message tool with `filePath` to deliver images.
+
 API key
 
 - `GEMINI_API_KEY` env var
@@ -54,5 +66,4 @@ Notes
 
 - Resolutions: `1K` (default), `2K`, `4K`.
 - Use timestamps in filenames: `yyyy-mm-dd-hh-mm-ss-name.png`.
-- The script prints a `MEDIA:` line for OpenClaw to auto-attach on supported chat providers.
 - Do not read the image back; report the saved path only.

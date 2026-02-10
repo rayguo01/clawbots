@@ -1,0 +1,8 @@
+{
+  "id": "amadeus",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}

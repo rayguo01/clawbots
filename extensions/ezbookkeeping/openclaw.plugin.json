@@ -1,0 +1,8 @@
+{
+  "id": "ezbookkeeping",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}

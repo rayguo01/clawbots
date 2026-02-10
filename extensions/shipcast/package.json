@@ -1,0 +1,14 @@
+{
+  "name": "@nanobots/shipcast",
+  "version": "2026.2.10",
+  "description": "Auto-tweet your code updates from GitHub commits",
+  "type": "module",
+  "devDependencies": {
+    "nanobots": "workspace:*"
+  },
+  "nanobots": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

@@ -31,8 +31,27 @@ const ReplySchema = Type.Object({
   body: Type.String({ description: "Reply body (plain text)." }),
 });
 
+const TrashSchema = Type.Object({
+  messageId: Type.String({ description: "The Gmail message ID to move to trash." }),
+});
+
+const BatchTrashSchema = Type.Object({
+  messageIds: Type.Array(Type.String(), {
+    description: "Array of Gmail message IDs to move to trash.",
+    minItems: 1,
+    maxItems: 100,
+  }),
+});
+
 export function createGmailTools(): AnyAgentTool[] {
-  return [createSearchTool(), createReadTool(), createSendTool(), createReplyTool()];
+  return [
+    createSearchTool(),
+    createReadTool(),
+    createSendTool(),
+    createReplyTool(),
+    createTrashTool(),
+    createBatchTrashTool(),
+  ];
 }
 
 function createSearchTool(): AnyAgentTool {
@@ -148,6 +167,48 @@ function createReplyTool(): AnyAgentTool {
       });
       const sent = (await res.json()) as { id: string; threadId: string };
       return jsonResult({ replied: true, messageId: sent.id, threadId: sent.threadId });
+    },
+  };
+}
+
+function createTrashTool(): AnyAgentTool {
+  return {
+    label: "Gmail: Trash",
+    name: "google_gmail_trash",
+    description: "Move a Gmail message to trash by its message ID.",
+    parameters: TrashSchema,
+    execute: async (_toolCallId, args) => {
+      const params = args as Record<string, unknown>;
+      const messageId = String(params.messageId);
+
+      await googleFetch(`${GMAIL_BASE}/messages/${messageId}/trash`, {
+        method: "POST",
+      });
+      return jsonResult({ trashed: true, messageId });
+    },
+  };
+}
+
+function createBatchTrashTool(): AnyAgentTool {
+  return {
+    label: "Gmail: Batch Trash",
+    name: "google_gmail_batch_trash",
+    description:
+      "Move multiple Gmail messages to trash at once. More efficient than trashing one by one. Max 100 messages per call.",
+    parameters: BatchTrashSchema,
+    execute: async (_toolCallId, args) => {
+      const params = args as Record<string, unknown>;
+      const messageIds = params.messageIds as string[];
+
+      await googleFetch(`${GMAIL_BASE}/messages/batchModify`, {
+        method: "POST",
+        body: JSON.stringify({
+          ids: messageIds,
+          addLabelIds: ["TRASH"],
+          removeLabelIds: ["INBOX", "UNREAD"],
+        }),
+      });
+      return jsonResult({ trashed: true, count: messageIds.length, messageIds });
     },
   };
 }

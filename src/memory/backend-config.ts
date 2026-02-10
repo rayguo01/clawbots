@@ -231,7 +231,11 @@ export function resolveMemoryBackendConfig(params: {
   cfg: OpenClawConfig;
   agentId: string;
 }): ResolvedMemoryBackendConfig {
-  const backend = params.cfg.memory?.backend ?? DEFAULT_BACKEND;
+  const envBackend = process.env.NANOBOTS_MEMORY_BACKEND?.trim()?.toLowerCase();
+  const backend =
+    params.cfg.memory?.backend ??
+    (envBackend === "qmd" || envBackend === "builtin" ? (envBackend as MemoryBackend) : null) ??
+    DEFAULT_BACKEND;
   const citations = params.cfg.memory?.citations ?? DEFAULT_CITATIONS;
   if (backend !== "qmd") {
     return { backend: "builtin", citations };

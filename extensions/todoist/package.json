@@ -1,0 +1,14 @@
+{
+  "name": "@nanobots/todoist",
+  "version": "2026.2.9",
+  "description": "Todoist task management tools for nanobots",
+  "type": "module",
+  "devDependencies": {
+    "nanobots": "workspace:*"
+  },
+  "nanobots": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

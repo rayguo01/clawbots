@@ -1,6 +1,6 @@
 ---
 name: sherpa-onnx-tts
-description: Local text-to-speech via sherpa-onnx (offline, no cloud)
+description: Local text-to-speech via sherpa-onnx (offline, no cloud). 关键词：本地语音合成、离线TTS、文字转语音。
 metadata:
   {
     "openclaw":

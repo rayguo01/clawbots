@@ -53,6 +53,7 @@ async function handleProviders(_req: IncomingMessage, res: ServerResponse): Prom
     configured: !!(p.clientId && p.clientSecret),
     connected: connectedSet.has(p.id),
     scopes: p.scopes,
+    envHint: p.envHint,
   }));
 
   sendJson(res, 200, { providers: result });
@@ -78,8 +79,12 @@ async function handleStart(req: IncomingMessage, res: ServerResponse): Promise<v
   }
 
   if (!provider.clientId || !provider.clientSecret) {
+    const hint = provider.envHint;
+    const envNames = hint
+      ? `${hint.clientId} and ${hint.clientSecret}`
+      : `client ID and client secret`;
     sendJson(res, 400, {
-      error: `OAuth not configured for ${provider.name}. Set NANOBOTS_GOOGLE_CLIENT_ID and NANOBOTS_GOOGLE_CLIENT_SECRET environment variables.`,
+      error: `OAuth not configured for ${provider.name}. Set ${envNames} environment variables.`,
     });
     return;
   }
@@ -130,7 +135,7 @@ async function handleCallback(req: IncomingMessage, res: ServerResponse): Promis
   }
 
   try {
-    await exchangeCodeForToken(provider, code, pending.redirectUri);
+    await exchangeCodeForToken(provider, code, pending.redirectUri, pending.codeVerifier);
     res.statusCode = 200;
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.end(callbackPage(true, `${provider.name} connected successfully!`));
@@ -200,9 +205,15 @@ function callbackPage(success: boolean, message: string): string {
     <div class="icon">${icon}</div>
     <h2>${success ? "Connected!" : "Error"}</h2>
     <p>${escapeHtml(message)}</p>
-    <a href="/web">Back to Setup</a>
+    <a href="javascript:void(0)" onclick="closeWin()">Close</a>
   </div>
-  <script>setTimeout(function(){ window.location.href = "/web"; }, 3000);</script>
+  <script>
+    function closeWin() {
+      if (window.opener && window.opener.onOAuthDone) window.opener.onOAuthDone();
+      window.close();
+    }
+    setTimeout(closeWin, 2000);
+  </script>
 </body>
 </html>`;
 }

@@ -1,6 +1,6 @@
 ---
 name: gemini
-description: Gemini CLI for one-shot Q&A, summaries, and generation.
+description: Gemini CLI for one-shot Q&A, summaries, and generation. 关键词：Gemini问答、摘要生成、文本生成。
 homepage: https://ai.google.dev/
 metadata:
   {

@@ -1,6 +1,6 @@
 ---
 name: video-frames
-description: Extract frames or short clips from videos using ffmpeg.
+description: Extract frames or short clips from videos using ffmpeg. 关键词：视频截图、提取帧、视频片段、ffmpeg。
 homepage: https://ffmpeg.org
 metadata:
   {

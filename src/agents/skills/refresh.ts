@@ -23,7 +23,8 @@ const log = createSubsystemLogger("gateway/skills");
 const listeners = new Set<(event: SkillsChangeEvent) => void>();
 const workspaceVersions = new Map<string, number>();
 const watchers = new Map<string, SkillsWatchState>();
-let globalVersion = 0;
+// Start at 1 so that stale snapshots (version 0) are always refreshed on restart.
+let globalVersion = 1;
 
 export const DEFAULT_SKILLS_WATCH_IGNORED: RegExp[] = [
   /(^|[\\/])\.git([\\/]|$)/,

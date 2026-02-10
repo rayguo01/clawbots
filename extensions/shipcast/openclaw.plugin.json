@@ -1,0 +1,8 @@
+{
+  "id": "shipcast",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}

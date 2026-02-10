@@ -2,6 +2,7 @@ import { Type } from "@sinclair/typebox";
 import type { OpenClawConfig } from "../../config/config.js";
 import type { AnyAgentTool } from "./common.js";
 import { formatCliCommand } from "../../cli/command-format.js";
+import { runExec } from "../../process/exec.js";
 import { wrapWebContent } from "../../security/external-content.js";
 import { jsonResult, readNumberParam, readStringParam } from "./common.js";
 import {
@@ -17,7 +18,22 @@ import {
   writeCache,
 } from "./web-shared.js";
 
-const SEARCH_PROVIDERS = ["brave", "perplexity"] as const;
+const SEARCH_PROVIDERS = ["brave", "perplexity", "ddg"] as const;
+
+const COUNTRY_TO_DDG_REGION: Record<string, string> = {
+  US: "us-en",
+  CN: "cn-zh",
+  SG: "sg-en",
+  JP: "jp-jp",
+  KR: "kr-kr",
+  GB: "uk-en",
+  DE: "de-de",
+  FR: "fr-fr",
+  TH: "th-en",
+  MY: "my-en",
+  AU: "au-en",
+  CA: "ca-en",
+};
 const DEFAULT_SEARCH_COUNT = 5;
 const MAX_SEARCH_COUNT = 10;
 
@@ -149,13 +165,15 @@ function resolveSearchProvider(search?: WebSearchConfig): (typeof SEARCH_PROVIDE
     search && "provider" in search && typeof search.provider === "string"
       ? search.provider.trim().toLowerCase()
       : "";
-  if (raw === "perplexity") {
-    return "perplexity";
-  }
-  if (raw === "brave") {
-    return "brave";
-  }
-  return "brave";
+  if (raw === "perplexity") return "perplexity";
+  if (raw === "brave") return "brave";
+  if (raw === "ddg") return "ddg";
+  // Auto-detect: prefer paid providers when API keys are available, fallback to DDG
+  if (resolveSearchApiKey(search)) return "brave";
+  const pplxKey =
+    (process.env.PERPLEXITY_API_KEY ?? "").trim() || (process.env.OPENROUTER_API_KEY ?? "").trim();
+  if (pplxKey) return "perplexity";
+  return "ddg";
 }
 
 function resolvePerplexityConfig(search?: WebSearchConfig): PerplexityConfig {
@@ -307,6 +325,58 @@ function resolveSiteName(url: string | undefined): string | undefined {
   } catch {
     return undefined;
   }
+}
+
+async function runDdgSearch(params: {
+  query: string;
+  count: number;
+  timeoutSeconds: number;
+  cacheTtlMs: number;
+  country?: string;
+}): Promise<Record<string, unknown>> {
+  const cacheKey = normalizeCacheKey(
+    `ddg:${params.query}:${params.count}:${params.country || "default"}`,
+  );
+  const cached = readCache(SEARCH_CACHE, cacheKey);
+  if (cached) return { ...cached.value, cached: true };
+
+  const start = Date.now();
+  const region = params.country
+    ? COUNTRY_TO_DDG_REGION[params.country.toUpperCase()] || "wt-wt"
+    : "wt-wt";
+
+  const script = [
+    "import json",
+    "from ddgs import DDGS",
+    `results = list(DDGS().text(${JSON.stringify(params.query)}, region=${JSON.stringify(region)}, max_results=${params.count}))`,
+    "print(json.dumps(results, ensure_ascii=False))",
+  ].join("\n");
+
+  const { stdout } = await runExec("python3", ["-c", script], {
+    timeoutMs: params.timeoutSeconds * 1000,
+  });
+
+  const raw = JSON.parse(stdout.trim()) as Array<{
+    title?: string;
+    href?: string;
+    body?: string;
+  }>;
+  const mapped = raw.map((r) => ({
+    title: r.title ? wrapWebContent(r.title, "web_search") : "",
+    url: r.href || "",
+    description: r.body ? wrapWebContent(r.body, "web_search") : "",
+    siteName: resolveSiteName(r.href),
+  }));
+
+  const payload = {
+    query: params.query,
+    provider: "ddg",
+    count: mapped.length,
+    tookMs: Date.now() - start,
+    results: mapped,
+  };
+  writeCache(SEARCH_CACHE, cacheKey, payload, params.cacheTtlMs);
+  return payload;
 }
 
 async function runPerplexitySearch(params: {
@@ -473,7 +543,9 @@ export function createWebSearchTool(options?: {
   const description =
     provider === "perplexity"
       ? "Search the web using Perplexity Sonar (direct or via OpenRouter). Returns AI-synthesized answers with citations from real-time web search."
-      : "Search the web using Brave Search API. Supports region-specific and localized search via country and language parameters. Returns titles, URLs, and snippets for fast research.";
+      : provider === "ddg"
+        ? "Search the web using DuckDuckGo. Free, no API key required. Supports region-specific search via country parameter. Returns titles, URLs, and snippets."
+        : "Search the web using Brave Search API. Supports region-specific and localized search via country and language parameters. Returns titles, URLs, and snippets for fast research.";
 
   return {
     label: "Web Search",
@@ -481,6 +553,24 @@ export function createWebSearchTool(options?: {
     description,
     parameters: WebSearchSchema,
     execute: async (_toolCallId, args) => {
+      const params = args as Record<string, unknown>;
+      const query = readStringParam(params, "query", { required: true });
+      const count =
+        readNumberParam(params, "count", { integer: true }) ?? search?.maxResults ?? undefined;
+      const country = readStringParam(params, "country");
+
+      // DDG provider: no API key needed, call directly
+      if (provider === "ddg") {
+        const result = await runDdgSearch({
+          query,
+          count: resolveSearchCount(count, DEFAULT_SEARCH_COUNT),
+          timeoutSeconds: resolveTimeoutSeconds(search?.timeoutSeconds, DEFAULT_TIMEOUT_SECONDS),
+          cacheTtlMs: resolveCacheTtlMs(search?.cacheTtlMinutes, DEFAULT_CACHE_TTL_MINUTES),
+          country,
+        });
+        return jsonResult(result);
+      }
+
       const perplexityAuth =
         provider === "perplexity" ? resolvePerplexityApiKey(perplexityConfig) : undefined;
       const apiKey =
@@ -489,11 +579,6 @@ export function createWebSearchTool(options?: {
       if (!apiKey) {
         return jsonResult(missingSearchKeyPayload(provider));
       }
-      const params = args as Record<string, unknown>;
-      const query = readStringParam(params, "query", { required: true });
-      const count =
-        readNumberParam(params, "count", { integer: true }) ?? search?.maxResults ?? undefined;
-      const country = readStringParam(params, "country");
       const search_lang = readStringParam(params, "search_lang");
       const ui_lang = readStringParam(params, "ui_lang");
       const rawFreshness = readStringParam(params, "freshness");

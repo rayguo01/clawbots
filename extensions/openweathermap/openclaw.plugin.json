@@ -1,0 +1,8 @@
+{
+  "id": "openweathermap",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}

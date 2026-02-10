@@ -1,0 +1,14 @@
+{
+  "name": "@nanobots/openweathermap",
+  "version": "2026.2.9",
+  "description": "OpenWeatherMap weather tools for nanobots",
+  "type": "module",
+  "devDependencies": {
+    "nanobots": "workspace:*"
+  },
+  "nanobots": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

@@ -1,21 +1,68 @@
 services:
   nanobots:
-    build: .
+    build:
+      context: .
+      args:
+        NANOBOTS_ENABLE_QMD: "true"
     container_name: nanobots
     environment:
+      TZ: Asia/Singapore
       HOME: /home/node
       TERM: xterm-256color
       NANOBOTS_STATE_DIR: /home/node/.nanobots
       NANOBOTS_GATEWAY_TOKEN: ${NANOBOTS_GATEWAY_TOKEN:-changeme}
       OPENCLAW_BUNDLED_PLUGINS_DIR: /app/extensions
+      NANOBOTS_GOOGLE_CLIENT_ID: ${NANOBOTS_GOOGLE_CLIENT_ID}
+      NANOBOTS_GOOGLE_CLIENT_SECRET: ${NANOBOTS_GOOGLE_CLIENT_SECRET}
+      NANOBOTS_TODOIST_CLIENT_ID: ${NANOBOTS_TODOIST_CLIENT_ID}
+      NANOBOTS_TODOIST_CLIENT_SECRET: ${NANOBOTS_TODOIST_CLIENT_SECRET}
+      NANOBOTS_NOTION_CLIENT_ID: ${NANOBOTS_NOTION_CLIENT_ID}
+      NANOBOTS_NOTION_CLIENT_SECRET: ${NANOBOTS_NOTION_CLIENT_SECRET}
+      NANOBOTS_GOOGLE_PLACES_API_KEY: ${NANOBOTS_GOOGLE_PLACES_API_KEY}
+      NANOBOTS_AMAP_API_KEY: ${NANOBOTS_AMAP_API_KEY}
+      NANOBOTS_OPENWEATHERMAP_API_KEY: ${NANOBOTS_OPENWEATHERMAP_API_KEY}
+      NANOBOTS_AMADEUS_API_KEY: ${NANOBOTS_AMADEUS_API_KEY}
+      NANOBOTS_AMADEUS_API_SECRET: ${NANOBOTS_AMADEUS_API_SECRET}
+      NANOBOTS_EZBOOKKEEPING_URL: http://ezbookkeeping:8080
+      NANOBOTS_EZBOOKKEEPING_SECRET: ${NANOBOTS_EZBOOKKEEPING_SECRET:-nanobots-ezb-secret}
+      NANOBOTS_EZBOOKKEEPING_CURRENCY: ${NANOBOTS_EZBOOKKEEPING_CURRENCY:-SGD}
+      CAMINO_API_KEY: ${CAMINO_API_KEY:-${CAMINO_API_KEY}}
+      NANOBOTS_USDA_API_KEY: ${NANOBOTS_USDA_API_KEY:-${NANOBOTS_USDA_API_KEY}}
+      NANOBOTS_DROPBOX_CLIENT_ID: ${NANOBOTS_DROPBOX_CLIENT_ID}
+      NANOBOTS_DROPBOX_CLIENT_SECRET: ${NANOBOTS_DROPBOX_CLIENT_SECRET}
+      NANOBOTS_MICROSOFT365_CLIENT_ID: ${NANOBOTS_MICROSOFT365_CLIENT_ID}
+      NANOBOTS_MICROSOFT365_CLIENT_SECRET: ${NANOBOTS_MICROSOFT365_CLIENT_SECRET}
+      NANOBOTS_MEMORY_BACKEND: qmd
+      NANOBOTS_QMD_MODELS_DIR: /home/node/.nanobots/shared/qmd-models
+    depends_on:
+      ezbookkeeping:
+        condition: service_started
     volumes:
       - nanobots-data:/home/node/.nanobots
       - nanobots-workspace:/home/node/.nanobots/workspace
+      - qmd-models:/home/node/.nanobots/shared/qmd-models
     ports:
       - "${NANOBOTS_PORT:-8080}:8080"
     init: true
     restart: unless-stopped
 
+  ezbookkeeping:
+    image: mayswind/ezbookkeeping:latest
+    container_name: ezbookkeeping
+    environment:
+      EBK_SERVER_HTTP_ADDR: "0.0.0.0"
+      EBK_SERVER_HTTP_PORT: "8080"
+      EBK_DATABASE_TYPE: "sqlite3"
+      EBK_DATABASE_DB_PATH: "/ezbookkeeping/data/ezbookkeeping.db"
+      EBK_SECURITY_SECRET_KEY: ${NANOBOTS_EZBOOKKEEPING_SECRET:-nanobots-ezb-secret}
+      EBK_SECURITY_ENABLE_TWO_FACTOR: "false"
+      EBK_USER_ENABLE_REGISTER: "true"
+    volumes:
+      - ezbookkeeping-data:/ezbookkeeping/data
+    restart: unless-stopped
+
 volumes:
   nanobots-data:
   nanobots-workspace:
+  ezbookkeeping-data:
+  qmd-models:

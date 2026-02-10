@@ -1,6 +1,6 @@
 ---
 name: blogwatcher
-description: Monitor blogs and RSS/Atom feeds for updates using the blogwatcher CLI.
+description: Monitor blogs and RSS/Atom feeds for updates using the blogwatcher CLI. 关键词：博客监控、RSS订阅、网站更新、Feed。
 homepage: https://github.com/Hyaxia/blogwatcher
 metadata:
   {

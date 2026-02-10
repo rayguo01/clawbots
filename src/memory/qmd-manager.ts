@@ -141,6 +141,21 @@ export class QmdMemoryManager implements MemorySearchManager {
     await fs.mkdir(this.xdgCacheHome, { recursive: true });
     await fs.mkdir(path.dirname(this.indexPath), { recursive: true });
 
+    // Share models across agents to avoid ~2GB duplication per agent
+    const sharedModelsDir = process.env.NANOBOTS_QMD_MODELS_DIR?.trim();
+    if (sharedModelsDir) {
+      const agentModelsDir = path.join(this.xdgCacheHome, "qmd", "models");
+      await fs.mkdir(path.dirname(agentModelsDir), { recursive: true });
+      try {
+        await fs.lstat(agentModelsDir);
+        // exists (file, dir, or symlink) — don't touch
+      } catch {
+        // does not exist — create symlink to shared dir
+        await fs.mkdir(sharedModelsDir, { recursive: true });
+        await fs.symlink(sharedModelsDir, agentModelsDir, "dir");
+      }
+    }
+
     this.bootstrapCollections();
     await this.ensureCollections();
 

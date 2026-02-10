@@ -32,7 +32,12 @@ function buildStatus(config: OpenClawConfig): SetupStatus {
   const allowFrom = tg?.allowFrom;
   const userId = allowFrom?.[0] != null ? String(allowFrom[0]) : undefined;
 
-  const waEnabled = config.channels?.whatsapp != null;
+  // WhatsApp can be configured via channels.whatsapp OR plugins.entries.whatsapp
+  const waChannelEnabled = config.channels?.whatsapp != null;
+  const waPluginEnabled = (config as any).plugins?.entries?.whatsapp?.enabled === true;
+  // Also check if WhatsApp credentials exist (linked device)
+  const waCredsExist = isWhatsAppLinked();
+  const waEnabled = waChannelEnabled || waPluginEnabled || waCredsExist;
 
   const agentModel = resolveDefaultModel(config);
 
@@ -59,6 +64,16 @@ function buildStatus(config: OpenClawConfig): SetupStatus {
       defaultModel: agentModel ?? undefined,
     },
   };
+}
+
+function isWhatsAppLinked(): boolean {
+  try {
+    const configDir = resolveConfigPath();
+    const credsPath = path.join(configDir, "credentials", "whatsapp", "default", "creds.json");
+    return fs.existsSync(credsPath);
+  } catch {
+    return false;
+  }
 }
 
 function resolveDefaultModel(config: OpenClawConfig): string | null {

@@ -322,6 +322,108 @@ export function applyGoogleTurnOrderingFix(params: {
   return { messages: sanitized, didPrepend };
 }
 
+/**
+ * Gemini 3 requires `thoughtSignature` on every function-call part when thinking
+ * mode is active.  When replaying history from a different provider/model the
+ * signatures are absent, and pi-ai converts those toolCall blocks to a text note
+ * ("[Historical context: …]") that the model may echo to the user.
+ *
+ * To prevent this we downgrade cross-model toolCall/toolResult pairs to plain
+ * text *before* they reach pi-ai so the converter never sees them.
+ */
+function downgradeUnsignedToolCallsForGemini3(
+  messages: AgentMessage[],
+  modelId?: string,
+  provider?: string,
+): AgentMessage[] {
+  if (!modelId || !modelId.toLowerCase().includes("gemini-3")) {
+    return messages;
+  }
+
+  // 1. Collect toolCall IDs that will lack a valid thoughtSignature in pi-ai.
+  //    pi-ai resolves thoughtSignature = undefined when
+  //    msg.provider !== model.provider || msg.model !== model.id
+  type AssistantLike = {
+    role: "assistant";
+    provider?: string;
+    model?: string;
+    content: Array<{ type: string; id?: string; name?: string; arguments?: unknown }>;
+  };
+  const downgradeIds = new Set<string>();
+
+  for (const msg of messages) {
+    if (msg.role !== "assistant") continue;
+    const a = msg as unknown as AssistantLike;
+    const sameProviderAndModel = a.provider === provider && a.model === modelId;
+    if (sameProviderAndModel) continue;
+    for (const block of a.content) {
+      if (block.type === "toolCall" && block.id) {
+        downgradeIds.add(block.id);
+      }
+    }
+  }
+
+  if (downgradeIds.size === 0) return messages;
+
+  // 2. Rewrite: toolCall → short text, toolResult → short text in an assistant msg.
+  const out: AgentMessage[] = [];
+  for (const msg of messages) {
+    if (msg.role === "assistant") {
+      const a = msg as unknown as AssistantLike;
+      const hasDowngrade = a.content.some(
+        (b) => b.type === "toolCall" && b.id && downgradeIds.has(b.id),
+      );
+      if (!hasDowngrade) {
+        out.push(msg);
+        continue;
+      }
+      const nextContent = a.content.map((block) => {
+        if (block.type === "toolCall" && block.id && downgradeIds.has(block.id)) {
+          const argsSnippet = block.arguments
+            ? JSON.stringify(block.arguments).slice(0, 200)
+            : "{}";
+          return { type: "text" as const, text: `[used ${block.name}: ${argsSnippet}]` };
+        }
+        return block;
+      });
+      out.push({ ...msg, content: nextContent } as AgentMessage);
+    } else if (msg.role === "toolResult") {
+      type ToolResultLike = {
+        role: "toolResult";
+        toolCallId: string;
+        toolName: string;
+        content: Array<{ type: string; text?: string }>;
+        timestamp?: number;
+      };
+      const tr = msg as unknown as ToolResultLike;
+      if (downgradeIds.has(tr.toolCallId)) {
+        // Convert to an assistant text block so the conversation stays coherent.
+        const snippet = tr.content
+          .filter((c) => c.type === "text")
+          .map((c) => c.text ?? "")
+          .join("\n")
+          .slice(0, 400);
+        out.push({
+          role: "assistant",
+          content: [{ type: "text", text: `[${tr.toolName} result: ${snippet || "(ok)"}]` }],
+        } as AgentMessage);
+      } else {
+        out.push(msg);
+      }
+    } else {
+      out.push(msg);
+    }
+  }
+
+  log.info("downgradeUnsignedToolCallsForGemini3", {
+    downgradedToolCalls: downgradeIds.size,
+    messagesBefore: messages.length,
+    messagesAfter: out.length,
+  });
+
+  return out;
+}
+
 export async function sanitizeSessionHistory(params: {
   messages: AgentMessage[];
   modelApi?: string | null;
@@ -354,6 +456,14 @@ export async function sanitizeSessionHistory(params: {
     ? sanitizeToolUseResultPairing(sanitizedToolCalls)
     : sanitizedToolCalls;
 
+  // Gemini 3: downgrade cross-model toolCall/toolResult pairs to text so pi-ai
+  // does not generate "[Historical context: …]" text that the model echoes.
+  const sanitizedGemini3ToolCalls = downgradeUnsignedToolCallsForGemini3(
+    repairedTools,
+    params.modelId,
+    params.provider,
+  );
+
   const isOpenAIResponsesApi =
     params.modelApi === "openai-responses" || params.modelApi === "openai-codex-responses";
   const hasSnapshot = Boolean(params.provider || params.modelApi || params.modelId);
@@ -368,8 +478,8 @@ export async function sanitizeSessionHistory(params: {
     : false;
   const sanitizedOpenAI =
     isOpenAIResponsesApi && modelChanged
-      ? downgradeOpenAIReasoningBlocks(repairedTools)
-      : repairedTools;
+      ? downgradeOpenAIReasoningBlocks(sanitizedGemini3ToolCalls)
+      : sanitizedGemini3ToolCalls;
 
   if (hasSnapshot && (!priorSnapshot || modelChanged)) {
     appendModelSnapshot(params.sessionManager, {

@@ -189,3 +189,62 @@ h1 {
 a.btn {
   text-decoration: none;
 }
+
+/* Dashboard (step 3) */
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.dashboard-header h1 {
+  margin-bottom: 0;
+}
+.config-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+.config-row:last-child {
+  border-bottom: none;
+}
+.config-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #555;
+}
+.config-detail {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #f9fafb;
+  border-radius: 6px;
+  font-size: 13px;
+}
+.config-detail code {
+  color: #2563eb;
+}
+
+/* Model selection cards */
+.model-card {
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color 0.2s;
+}
+.model-card:hover {
+  border-color: #93c5fd;
+}
+.model-card.model-selected {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+.model-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.model-card-header input[type="radio"] {
+  width: auto;
+  margin: 0;
+}

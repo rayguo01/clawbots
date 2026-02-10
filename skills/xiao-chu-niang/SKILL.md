@@ -1,13 +1,7 @@
 ---
 name: xiao-chu-niang
-description: 小厨娘 - 智能餐食规划，你的做饭搭子。根据地区、预算、口味自动生成平衡膳食计划和购物清单。支持新加坡和中国，覆盖中日韩法泰越等多菜系。关键词：吃什么、食谱、做饭、meal plan、菜谱、一周食谱、晚饭做什么、买菜清单、想做饭、meal prep。Keywords: meal plan, what to cook, recipe, weekly menu, shopping list, dinner ideas, budget cooking.
-version: 1.0.0
-author: nanobots
-tags: [meal-planning, cooking, recipe, nutrition, shopping-list, 食谱, 菜谱]
-metadata:
-  openclaw:
-    emoji: "🥘"
-    requires: {}
+description: "小厨娘 - 智能餐食规划，你的做饭搭子。根据地区、预算、口味自动生成平衡膳食计划和购物清单。支持新加坡和中国，覆盖中日韩法泰越等多菜系。关键词：吃什么、食谱、做饭、meal plan、菜谱、一周食谱、晚饭做什么、买菜清单、想做饭、meal prep。Keywords: meal plan, what to cook, recipe, weekly menu, shopping list, dinner ideas, budget cooking."
+metadata: { "openclaw": { "emoji": "🥘", "requires": {} } }
 ---
 
 # 小厨娘 🥘

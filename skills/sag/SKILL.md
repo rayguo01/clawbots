@@ -1,6 +1,6 @@
 ---
 name: sag
-description: ElevenLabs text-to-speech with mac-style say UX.
+description: ElevenLabs text-to-speech with mac-style say UX. 关键词：文字转语音、朗读、TTS、语音合成。
 homepage: https://sag.sh
 metadata:
   {

@@ -1,0 +1,8 @@
+{
+  "id": "amap",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}

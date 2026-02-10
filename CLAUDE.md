@@ -30,3 +30,7 @@ pnpm gateway:dev  # Gateway only (skips channels)
 pnpm test         # Run tests
 pnpm build        # Production build
 ```
+
+## 架构文件
+
+- docs/plans/architecture.md openclaw原项目的架构说明文件

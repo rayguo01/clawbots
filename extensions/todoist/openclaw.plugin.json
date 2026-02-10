@@ -1,0 +1,8 @@
+{
+  "id": "todoist",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}

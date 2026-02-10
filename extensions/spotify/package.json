@@ -1,0 +1,14 @@
+{
+  "name": "@nanobots/spotify",
+  "version": "2026.2.9",
+  "description": "Spotify playback control and search tools for nanobots",
+  "type": "module",
+  "devDependencies": {
+    "nanobots": "workspace:*"
+  },
+  "nanobots": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

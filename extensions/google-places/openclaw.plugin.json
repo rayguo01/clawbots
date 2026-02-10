@@ -1,0 +1,8 @@
+{
+  "id": "google-places",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}

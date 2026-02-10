@@ -1,7 +1,20 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
-import { loadConfig, writeConfigFile, readConfigFileSnapshot } from "openclaw/plugin-sdk";
+import path from "node:path";
+import {
+  loadConfig,
+  writeConfigFile,
+  readConfigFileSnapshot,
+  resolveAgentWorkspaceDir,
+  resolveDefaultAgentId,
+} from "openclaw/plugin-sdk";
 import type { KnowledgeConfig } from "./types.js";
+import { googleFetch } from "../../google-services/src/google-api.js";
+import { notionFetch } from "../../notion/src/notion-api.js";
+import { loadToken } from "../../web-setup/src/oauth/store.js";
+import { syncGoogleDrive } from "./connectors/google-drive.js";
+import { syncNotion } from "./connectors/notion.js";
+import { loadSyncState } from "./sync-state.js";
 
 function sendJson(res: ServerResponse, status: number, body: unknown): void {
   res.statusCode = status;
@@ -15,6 +28,13 @@ async function readBody(req: IncomingMessage): Promise<string> {
     body += chunk;
   }
   return body;
+}
+
+function resolveKnowledgeDir(): string {
+  const cfg = loadConfig();
+  const agentId = resolveDefaultAgentId(cfg);
+  const workspaceDir = resolveAgentWorkspaceDir(cfg, agentId);
+  return path.join(workspaceDir, "knowledge");
 }
 
 /**
@@ -52,6 +72,125 @@ export function registerKnowledgeRoutes(api: OpenClawPluginApi) {
     },
   });
 
+  // GET /api/knowledge/google-drive/folders — list Google Drive folders
+  api.registerHttpRoute({
+    path: "/api/knowledge/google-drive/folders",
+    handler: async (req, res) => {
+      if (req.method !== "GET") {
+        res.writeHead(405);
+        res.end();
+        return;
+      }
+
+      try {
+        const token = await loadToken("google");
+        if (!token) {
+          sendJson(res, 200, { connected: false, folders: [] });
+          return;
+        }
+
+        const query = `mimeType='application/vnd.google-apps.folder' and trashed=false and 'root' in parents`;
+        const gRes = await googleFetch(
+          `/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name)&pageSize=100`,
+        );
+        const data = (await gRes.json()) as { files?: Array<{ id: string; name: string }> };
+        const folders = (data.files ?? []).map((f) => ({ id: f.id, name: f.name }));
+        sendJson(res, 200, { connected: true, folders });
+      } catch (err) {
+        sendJson(res, 500, {
+          connected: true,
+          folders: [],
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
+    },
+  });
+
+  // GET /api/knowledge/notion/databases — list Notion databases
+  api.registerHttpRoute({
+    path: "/api/knowledge/notion/databases",
+    handler: async (req, res) => {
+      if (req.method !== "GET") {
+        res.writeHead(405);
+        res.end();
+        return;
+      }
+
+      try {
+        const token = await loadToken("notion");
+        if (!token) {
+          sendJson(res, 200, { connected: false, databases: [] });
+          return;
+        }
+
+        const nRes = await notionFetch("/search", {
+          method: "POST",
+          body: JSON.stringify({
+            filter: { value: "database", property: "object" },
+            page_size: 100,
+          }),
+        });
+        const data = (await nRes.json()) as {
+          results?: Array<{
+            id: string;
+            title?: Array<{ plain_text?: string }>;
+          }>;
+        };
+        const databases = (data.results ?? []).map((db) => ({
+          id: db.id,
+          name: db.title?.[0]?.plain_text ?? db.id,
+        }));
+        sendJson(res, 200, { connected: true, databases });
+      } catch (err) {
+        sendJson(res, 500, {
+          connected: true,
+          databases: [],
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
+    },
+  });
+
+  // GET /api/knowledge/status — sync status for each source
+  api.registerHttpRoute({
+    path: "/api/knowledge/status",
+    handler: async (req, res) => {
+      if (req.method !== "GET") {
+        res.writeHead(405);
+        res.end();
+        return;
+      }
+
+      try {
+        const knowledgeDir = resolveKnowledgeDir();
+        const gdStatePath = path.join(knowledgeDir, "google-drive", "sync-state.json");
+        const nStatePath = path.join(knowledgeDir, "notion", "sync-state.json");
+
+        const [gdState, nState, gdToken, nToken] = await Promise.all([
+          loadSyncState(gdStatePath),
+          loadSyncState(nStatePath),
+          loadToken("google"),
+          loadToken("notion"),
+        ]);
+
+        sendJson(res, 200, {
+          "google-drive": {
+            connected: !!gdToken,
+            lastSynced: gdState.last_synced_at || null,
+            fileCount: Object.keys(gdState.files).length,
+          },
+          notion: {
+            connected: !!nToken,
+            lastSynced: nState.last_synced_at || null,
+            fileCount: Object.keys(nState.files).length,
+          },
+        });
+      } catch (err) {
+        sendJson(res, 500, { error: err instanceof Error ? err.message : String(err) });
+      }
+    },
+  });
+
   // POST /api/knowledge/sync — trigger immediate sync
   api.registerHttpRoute({
     path: "/api/knowledge/sync",
@@ -61,7 +200,41 @@ export function registerKnowledgeRoutes(api: OpenClawPluginApi) {
         res.end();
         return;
       }
-      sendJson(res, 200, { ok: true, message: "Sync triggered" });
+
+      try {
+        const body = await readBody(req);
+        const { source } = JSON.parse(body || "{}") as { source?: string };
+        const cfg = loadConfig();
+        const knowledgeConfig =
+          ((cfg as Record<string, unknown>).knowledge as KnowledgeConfig) ?? {};
+        const knowledgeDir = resolveKnowledgeDir();
+        const results: Record<string, unknown> = {};
+
+        if (source === "all" || source === "google-drive") {
+          const gdConfig = knowledgeConfig["google-drive"];
+          if (gdConfig?.enabled) {
+            results["google-drive"] = await syncGoogleDrive({
+              config: gdConfig,
+              knowledgeDir,
+            });
+          } else {
+            results["google-drive"] = { skipped: true, reason: "not enabled" };
+          }
+        }
+
+        if (source === "all" || source === "notion") {
+          const nConfig = knowledgeConfig.notion;
+          if (nConfig?.enabled) {
+            results.notion = await syncNotion({ config: nConfig, knowledgeDir });
+          } else {
+            results.notion = { skipped: true, reason: "not enabled" };
+          }
+        }
+
+        sendJson(res, 200, { ok: true, results });
+      } catch (err) {
+        sendJson(res, 500, { ok: false, error: err instanceof Error ? err.message : String(err) });
+      }
     },
   });
 }

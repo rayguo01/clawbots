@@ -248,3 +248,100 @@ a.btn {
   width: auto;
   margin: 0;
 }
+
+/* Knowledge Base page */
+.kb-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+}
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #ccc;
+  border-radius: 24px;
+  transition: background 0.3s;
+}
+.toggle-slider::before {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  left: 3px;
+  bottom: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.3s;
+}
+.toggle-switch input:checked + .toggle-slider {
+  background: #2563eb;
+}
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(20px);
+}
+.kb-checkbox-list {
+  max-height: 240px;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  margin: 12px 0;
+  padding: 4px 0;
+}
+.kb-checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.kb-checkbox-item:hover {
+  background: #f9fafb;
+}
+.kb-checkbox-item input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  flex-shrink: 0;
+}
+.kb-details {
+  margin-top: 8px;
+}
+.kb-details summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: #2563eb;
+  user-select: none;
+}
+.kb-folder-list {
+  margin-top: 6px;
+  padding-left: 16px;
+  font-size: 13px;
+  color: #555;
+  list-style: disc;
+}
+.kb-folder-list li {
+  padding: 2px 0;
+}
+.kb-sync-info {
+  font-size: 13px;
+  color: #666;
+  margin-top: 8px;
+}

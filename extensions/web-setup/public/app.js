@@ -7,7 +7,7 @@
 
   var state = {
     step: 1,
-    page: "setup", // "setup", "settings", or "skills"
+    page: "setup", // "setup", "settings", "skills", or "knowledge"
     telegram: { botToken: "", userId: "", verified: false, botName: "" },
     whatsapp: { configured: false },
     model: { provider: "google", model: "gemini-3-pro", apiKey: "" },
@@ -15,6 +15,24 @@
     skills: {
       "nano-banana-pro": { configured: false, apiKey: "" },
       "oura-ring": { configured: false, apiKey: "" },
+    },
+    knowledge: {
+      googleDrive: {
+        connected: false,
+        enabled: false,
+        folders: [],
+        selectedFolders: [],
+        lastSynced: null,
+        fileCount: 0,
+      },
+      notion: {
+        connected: false,
+        enabled: false,
+        databases: [],
+        selectedDatabases: [],
+        lastSynced: null,
+        fileCount: 0,
+      },
     },
   };
 
@@ -50,6 +68,9 @@
     } else if (hash === "skills") {
       state.page = "skills";
       renderSkills();
+    } else if (hash === "knowledge") {
+      state.page = "knowledge";
+      renderKnowledgeBase();
     } else {
       state.page = "setup";
       render();
@@ -508,6 +529,7 @@
       "</div>" +
       '<div class="actions">' +
       '<button class="btn btn-primary" id="reconfig-btn">重新配置</button>' +
+      '<a href="#knowledge" class="btn btn-secondary">知识库</a>' +
       '<a href="#skills" class="btn btn-secondary">技能管理</a>' +
       '<a href="#settings" class="btn btn-secondary">服务管理</a>' +
       "</div>" +
@@ -703,54 +725,152 @@
       '<button class="btn btn-primary" id="oura-save">保存</button>' +
       "</div>" +
       "</div>" +
-      // ── Baoyu Visual Skills section ──
+      // ── Baoyu Visual Skills (4 cards) ──
       '<div class="card">' +
       '<div class="service-header">' +
-      "<h2>🎨 视觉创作 (Baoyu Skills)</h2>" +
+      "<h2>📖 文章配图 (Article Illustrator)</h2>" +
+      '<span class="badge badge-success" id="baoyu-illustrator-badge">加载中...</span>' +
       "</div>" +
-      '<p class="hint" style="margin-bottom:12px">文章配图、信息图、小红书图文、封面图生成。依赖图片生成（Nano Banana Pro）。</p>' +
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">' +
-      '<div class="hint">📖 文章配图 <span class="badge badge-success" id="baoyu-illustrator-badge">加载中...</span></div>' +
-      '<div class="hint">📊 信息图 <span class="badge badge-success" id="baoyu-infographic-badge">加载中...</span></div>' +
-      '<div class="hint">📕 小红书图文 <span class="badge badge-success" id="baoyu-xhs-badge">加载中...</span></div>' +
-      '<div class="hint">🖼️ 封面图 <span class="badge badge-success" id="baoyu-cover-badge">加载中...</span></div>' +
-      "</div>" +
-      '<div class="hint"><strong>触发：</strong>说"为文章配图""生成信息图""做小红书图片""生成封面图"</div>' +
+      '<p class="hint" style="margin-bottom:12px">为文章自动生成风格统一的配图，支持 20+ 种艺术风格（水彩、像素、扁平、复古等）。</p>' +
+      '<div class="hint"><strong>触发：</strong>说"为文章配图""给这篇文章画插图""illustrate this article"</div>' +
       '<div class="hint"><strong>依赖：</strong>需要已配置 Gemini API Key（图片生成）</div>' +
       "</div>" +
-      // ── Baoyu Utility Skills section ──
       '<div class="card">' +
       '<div class="service-header">' +
-      "<h2>🔧 网页/推文抓取 (Baoyu Tools)</h2>" +
+      "<h2>📊 信息图 (Infographic)</h2>" +
+      '<span class="badge badge-success" id="baoyu-infographic-badge">加载中...</span>' +
       "</div>" +
-      '<p class="hint" style="margin-bottom:12px">将网页或 X(Twitter) 内容转为 Markdown 格式保存。</p>' +
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">' +
-      '<div class="hint">🌐 网页转 Markdown <span class="badge badge-success" id="baoyu-url-badge">加载中...</span></div>' +
-      '<div class="hint">🐦 推文转 Markdown <span class="badge badge-success" id="baoyu-x-badge">加载中...</span></div>' +
+      '<p class="hint" style="margin-bottom:12px">将复杂信息转化为视觉化信息图，支持 20+ 种布局（漏斗、冰山、地铁图、本托盒等）和 17 种风格。</p>' +
+      '<div class="hint"><strong>触发：</strong>说"生成信息图""做一张数据图""infographic"</div>' +
+      '<div class="hint"><strong>依赖：</strong>需要已配置 Gemini API Key（图片生成）</div>' +
       "</div>" +
-      '<div class="hint"><strong>触发：</strong>发送网址说"保存这个网页"或"帮我保存这条推文"</div>' +
-      '<div class="hint"><strong>依赖：</strong>bun 运行时 + Chromium（网页抓取需要）</div>' +
-      "</div>" +
-      // ── Marketing Skills section ──
       '<div class="card">' +
       '<div class="service-header">' +
-      "<h2>📝 内容营销 (Marketing Skills)</h2>" +
-      '<span class="badge badge-success" id="marketing-badge">加载中...</span>' +
+      "<h2>📕 小红书图文 (XHS Images)</h2>" +
+      '<span class="badge badge-success" id="baoyu-xhs-badge">加载中...</span>' +
       "</div>" +
-      '<p class="hint" style="margin-bottom:12px">10 个营销策略技能，涵盖文案、心理学、定价、发布、社交等。纯文本对话，无需额外配置。</p>' +
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">' +
-      '<div class="hint">✏️ 文案编辑 (Copy Editing)</div>' +
-      '<div class="hint">📝 文案写作 (Copywriting)</div>' +
-      '<div class="hint">🧠 营销心理学 (Marketing Psychology)</div>' +
-      '<div class="hint">💡 营销创意 (Marketing Ideas)</div>' +
-      '<div class="hint">📱 社交内容 (Social Content)</div>' +
-      '<div class="hint">💰 定价策略 (Pricing Strategy)</div>' +
-      '<div class="hint">📈 页面优化 (Page CRO)</div>' +
-      '<div class="hint">🚀 发布策略 (Launch Strategy)</div>' +
-      '<div class="hint">🎯 用户引导 (Onboarding CRO)</div>' +
-      '<div class="hint">📧 邮件序列 (Email Sequence)</div>' +
+      '<p class="hint" style="margin-bottom:12px">生成小红书风格的图文卡片，支持 10 种预设风格（清新、复古、可爱、极简等），自动排版文字和装饰。</p>' +
+      '<div class="hint"><strong>触发：</strong>说"做小红书图片""生成小红书卡片""XHS style"</div>' +
+      '<div class="hint"><strong>依赖：</strong>需要已配置 Gemini API Key（图片生成）</div>' +
       "</div>" +
-      '<div class="hint"><strong>触发：</strong>说"帮我改文案""营销策略""定价建议""写发布计划"等</div>' +
+      '<div class="card">' +
+      '<div class="service-header">' +
+      "<h2>🖼️ 封面图 (Cover Image)</h2>" +
+      '<span class="badge badge-success" id="baoyu-cover-badge">加载中...</span>' +
+      "</div>" +
+      '<p class="hint" style="margin-bottom:12px">生成博客、公众号、社交媒体封面图，支持多种配色和渲染风格，可自动根据内容选择最佳方案。</p>' +
+      '<div class="hint"><strong>触发：</strong>说"生成封面图""做个文章封面""cover image"</div>' +
+      '<div class="hint"><strong>依赖：</strong>需要已配置 Gemini API Key（图片生成）</div>' +
+      "</div>" +
+      // ── Baoyu Utility Skills (2 cards) ──
+      '<div class="card">' +
+      '<div class="service-header">' +
+      "<h2>🌐 网页转 Markdown (URL to Markdown)</h2>" +
+      '<span class="badge badge-success" id="baoyu-url-badge">加载中...</span>' +
+      "</div>" +
+      '<p class="hint" style="margin-bottom:12px">用 Chromium 无头浏览器抓取网页完整内容，转为干净的 Markdown 格式。支持 JS 渲染页面。</p>' +
+      '<div class="hint"><strong>触发：</strong>发送网址说"保存这个网页""把这个链接转成文字"</div>' +
+      '<div class="hint"><strong>依赖：</strong>bun 运行时 + Chromium</div>' +
+      "</div>" +
+      '<div class="card">' +
+      '<div class="service-header">' +
+      "<h2>🐦 推文转 Markdown (X to Markdown)</h2>" +
+      '<span class="badge badge-success" id="baoyu-x-badge">加载中...</span>' +
+      "</div>" +
+      '<p class="hint" style="margin-bottom:12px">抓取 X(Twitter) 推文或整个线程，转为结构化 Markdown。支持图片、引用推文和长线程。</p>' +
+      '<div class="hint"><strong>触发：</strong>发送推文链接说"帮我保存这条推文""提取这个 thread"</div>' +
+      '<div class="hint"><strong>依赖：</strong>bun 运行时</div>' +
+      "</div>" +
+      // ── Marketing Skills (10 cards) ──
+      '<div class="card">' +
+      '<div class="service-header">' +
+      "<h2>✏️ 文案编辑 (Copy Editing)</h2>" +
+      '<span class="badge badge-success" id="copyediting-badge">加载中...</span>' +
+      "</div>" +
+      '<p class="hint" style="margin-bottom:12px">逐行审查和润色营销文案，检查清晰度、语法、一致性和品牌语调，附带修改说明。</p>' +
+      '<div class="hint"><strong>触发：</strong>说"帮我改文案""review this copy""编辑一下这段文字"</div>' +
+      '<div class="hint"><strong>依赖：</strong>无，纯文本对话</div>' +
+      "</div>" +
+      '<div class="card">' +
+      '<div class="service-header">' +
+      "<h2>📝 文案写作 (Copywriting)</h2>" +
+      '<span class="badge badge-success" id="copywriting-badge">加载中...</span>' +
+      "</div>" +
+      '<p class="hint" style="margin-bottom:12px">撰写营销文案 — 首页、落地页、定价页、功能页、关于页等，注重转化率和清晰表达。</p>' +
+      '<div class="hint"><strong>触发：</strong>说"写文案""landing page copy""帮我写首页文案"</div>' +
+      '<div class="hint"><strong>依赖：</strong>无，纯文本对话</div>' +
+      "</div>" +
+      '<div class="card">' +
+      '<div class="service-header">' +
+      "<h2>🧠 营销心理学 (Marketing Psychology)</h2>" +
+      '<span class="badge badge-success" id="mktpsych-badge">加载中...</span>' +
+      "</div>" +
+      '<p class="hint" style="margin-bottom:12px">运用心理学原理（社会认同、稀缺性、锚定效应等）优化营销策略和用户体验。</p>' +
+      '<div class="hint"><strong>触发：</strong>说"营销心理学分析""用户心理""persuasion audit"</div>' +
+      '<div class="hint"><strong>依赖：</strong>无，纯文本对话</div>' +
+      "</div>" +
+      '<div class="card">' +
+      '<div class="service-header">' +
+      "<h2>💡 营销创意 (Marketing Ideas)</h2>" +
+      '<span class="badge badge-success" id="mktideas-badge">加载中...</span>' +
+      "</div>" +
+      '<p class="hint" style="margin-bottom:12px">按预算和阶段生成营销创意 — 涵盖内容、社区、合作、产品驱动增长等 10+ 类策略。</p>' +
+      '<div class="hint"><strong>触发：</strong>说"营销创意""marketing ideas""怎么推广"</div>' +
+      '<div class="hint"><strong>依赖：</strong>无，纯文本对话</div>' +
+      "</div>" +
+      '<div class="card">' +
+      '<div class="service-header">' +
+      "<h2>📱 社交内容 (Social Content)</h2>" +
+      '<span class="badge badge-success" id="socialcontent-badge">加载中...</span>' +
+      "</div>" +
+      '<p class="hint" style="margin-bottom:12px">为各社交平台创建内容 — 支持 Twitter/X、LinkedIn、Instagram、TikTok 等，自动适配平台特性。</p>' +
+      '<div class="hint"><strong>触发：</strong>说"写条推文""LinkedIn post""社交媒体内容"</div>' +
+      '<div class="hint"><strong>依赖：</strong>无，纯文本对话</div>' +
+      "</div>" +
+      '<div class="card">' +
+      '<div class="service-header">' +
+      "<h2>💰 定价策略 (Pricing Strategy)</h2>" +
+      '<span class="badge badge-success" id="pricing-badge">加载中...</span>' +
+      "</div>" +
+      '<p class="hint" style="margin-bottom:12px">设计定价模型 — 竞品分析、价值量化、套餐分层、心理定价，附带调研方法和实验方案。</p>' +
+      '<div class="hint"><strong>触发：</strong>说"定价策略""pricing""怎么定价"</div>' +
+      '<div class="hint"><strong>依赖：</strong>无，纯文本对话</div>' +
+      "</div>" +
+      '<div class="card">' +
+      '<div class="service-header">' +
+      "<h2>📈 页面优化 (Page CRO)</h2>" +
+      '<span class="badge badge-success" id="pagecro-badge">加载中...</span>' +
+      "</div>" +
+      '<p class="hint" style="margin-bottom:12px">分析和优化网页转化率 — 布局、文案、CTA、社会证明、信任信号，生成具体实验方案。</p>' +
+      '<div class="hint"><strong>触发：</strong>说"优化页面转化率""page CRO""提升转化"</div>' +
+      '<div class="hint"><strong>依赖：</strong>无，纯文本对话</div>' +
+      "</div>" +
+      '<div class="card">' +
+      '<div class="service-header">' +
+      "<h2>🚀 发布策略 (Launch Strategy)</h2>" +
+      '<span class="badge badge-success" id="launch-badge">加载中...</span>' +
+      "</div>" +
+      '<p class="hint" style="margin-bottom:12px">制定产品发布计划 — 发布前预热、发布日执行、发布后跟进的完整策略框架。</p>' +
+      '<div class="hint"><strong>触发：</strong>说"发布计划""launch strategy""产品上线策略"</div>' +
+      '<div class="hint"><strong>依赖：</strong>无，纯文本对话</div>' +
+      "</div>" +
+      '<div class="card">' +
+      '<div class="service-header">' +
+      "<h2>🎯 用户引导 (Onboarding CRO)</h2>" +
+      '<span class="badge badge-success" id="onboarding-badge">加载中...</span>' +
+      "</div>" +
+      '<p class="hint" style="margin-bottom:12px">优化产品新用户引导流程 — 减少步骤、提升激活率、设计实验方案。</p>' +
+      '<div class="hint"><strong>触发：</strong>说"优化 onboarding""用户引导""新用户流程"</div>' +
+      '<div class="hint"><strong>依赖：</strong>无，纯文本对话</div>' +
+      "</div>" +
+      '<div class="card">' +
+      '<div class="service-header">' +
+      "<h2>📧 邮件序列 (Email Sequence)</h2>" +
+      '<span class="badge badge-success" id="emailseq-badge">加载中...</span>' +
+      "</div>" +
+      '<p class="hint" style="margin-bottom:12px">设计邮件自动化序列 — 欢迎、培育、激活、召回等，含完整文案、时间节奏和指标方案。</p>' +
+      '<div class="hint"><strong>触发：</strong>说"设计邮件序列""drip campaign""welcome email"</div>' +
+      '<div class="hint"><strong>依赖：</strong>无，纯文本对话</div>' +
       "</div>" +
       "</div>";
 
@@ -954,11 +1074,30 @@
           }
         }
       }
-      // Marketing skills badge
-      var mktBadge = document.getElementById("marketing-badge");
-      if (mktBadge) {
-        mktBadge.className = "badge badge-success";
-        mktBadge.textContent = "已就绪 ✓";
+      // Marketing skills badges
+      var mktMap = {
+        "copy-editing": "copyediting-badge",
+        copywriting: "copywriting-badge",
+        "marketing-psychology": "mktpsych-badge",
+        "marketing-ideas": "mktideas-badge",
+        "social-content": "socialcontent-badge",
+        "pricing-strategy": "pricing-badge",
+        "page-cro": "pagecro-badge",
+        "launch-strategy": "launch-badge",
+        "onboarding-cro": "onboarding-badge",
+        "email-sequence": "emailseq-badge",
+      };
+      for (var mk in mktMap) {
+        var mBadge = document.getElementById(mktMap[mk]);
+        if (mBadge) {
+          if (d && d[mk] && d[mk].configured) {
+            mBadge.className = "badge badge-success";
+            mBadge.textContent = "就绪 ✓";
+          } else {
+            mBadge.className = "badge badge-error";
+            mBadge.textContent = "未就绪";
+          }
+        }
       }
     });
   }
@@ -1028,6 +1167,487 @@
           '<span class="badge badge-error">' + esc(d.error || "保存失败") + "</span>";
       }
     });
+  }
+
+  // ── Knowledge Base page ─────────────────────────────────────
+  function renderKnowledgeBase() {
+    app.innerHTML =
+      '<div class="container">' +
+      '<div class="settings-header">' +
+      '<a href="#" class="btn btn-secondary btn-sm">&larr; 返回</a>' +
+      "<h1>知识库</h1>" +
+      '<p class="subtitle">同步云端文档到 AI 助手的知识库</p>' +
+      "</div>" +
+      '<div id="kb-content"><p>加载中...</p></div>' +
+      "</div>";
+
+    Promise.all([api("/api/knowledge/config"), api("/api/knowledge/status")])
+      .then(function (results) {
+        var config = results[0] || {};
+        var status = results[1] || {};
+
+        var gdConf = config["google-drive"] || {};
+        var nConf = config["notion"] || {};
+        var gdStatus = status["google-drive"] || {};
+        var nStatus = status["notion"] || {};
+
+        state.knowledge.googleDrive.connected = !!gdStatus.connected;
+        state.knowledge.googleDrive.enabled = !!gdConf.enabled;
+        state.knowledge.googleDrive.selectedFolders = gdConf.folders || [];
+        state.knowledge.googleDrive.lastSynced = gdStatus.lastSynced || null;
+        state.knowledge.googleDrive.fileCount = gdStatus.fileCount || 0;
+
+        state.knowledge.notion.connected = !!nStatus.connected;
+        state.knowledge.notion.enabled = !!nConf.enabled;
+        state.knowledge.notion.selectedDatabases = nConf.databases || [];
+        state.knowledge.notion.lastSynced = nStatus.lastSynced || null;
+        state.knowledge.notion.fileCount = nStatus.fileCount || 0;
+
+        renderKnowledgeContent();
+      })
+      .catch(function () {
+        var el = $("#kb-content");
+        if (el) el.innerHTML = '<p class="badge badge-error">加载知识库配置失败</p>';
+      });
+  }
+
+  function renderKnowledgeContent() {
+    var el = $("#kb-content");
+    if (!el) return;
+
+    el.innerHTML = renderGoogleDriveCard() + renderNotionCard();
+
+    bindKnowledgeHandlers();
+  }
+
+  function renderGoogleDriveCard() {
+    var gd = state.knowledge.googleDrive;
+
+    if (!gd.connected) {
+      return (
+        '<div class="card service-card">' +
+        '<div class="service-header">' +
+        "<h2>Google Drive</h2>" +
+        '<span class="badge badge-error">未授权</span>' +
+        "</div>" +
+        '<p class="hint">需要先授权 Google 账号才能同步 Drive 文件。</p>' +
+        '<div class="actions">' +
+        '<a href="#settings" class="btn btn-primary btn-sm">前往授权</a>' +
+        "</div>" +
+        "</div>"
+      );
+    }
+
+    var toggleChecked = gd.enabled ? " checked" : "";
+
+    // Header + toggle
+    var html =
+      '<div class="card service-card">' +
+      '<div class="service-header">' +
+      "<h2>Google Drive</h2>" +
+      (gd.enabled && gd.selectedFolders.length > 0
+        ? '<span class="badge badge-success">运行中</span>'
+        : gd.enabled
+          ? '<span class="badge badge-pending">待选择文件夹</span>'
+          : '<span class="badge badge-pending">已授权</span>') +
+      "</div>" +
+      '<div class="kb-toggle-row">' +
+      '<span class="config-label">启用同步</span>' +
+      '<label class="toggle-switch">' +
+      '<input type="checkbox" id="kb-gd-toggle"' +
+      toggleChecked +
+      ">" +
+      '<span class="toggle-slider"></span>' +
+      "</label>" +
+      "</div>";
+
+    if (gd.enabled) {
+      // Show folder selection area
+      html += '<div id="kb-gd-folders">';
+
+      if (gd.selectedFolders.length > 0) {
+        // Running state: show selected folders summary + sync info
+        html +=
+          '<details class="kb-details">' +
+          "<summary>已选 " +
+          gd.selectedFolders.length +
+          " 个文件夹</summary>" +
+          '<ul class="kb-folder-list">';
+        for (var i = 0; i < gd.selectedFolders.length; i++) {
+          html += "<li>" + esc(gd.selectedFolders[i]) + "</li>";
+        }
+        html += "</ul></details>";
+
+        if (gd.lastSynced) {
+          html +=
+            '<div class="kb-sync-info">上次同步: ' +
+            formatTime(gd.lastSynced) +
+            " | 文件数: " +
+            gd.fileCount +
+            "</div>";
+        }
+
+        html +=
+          '<div class="actions">' +
+          '<button class="btn btn-primary btn-sm" id="kb-gd-sync">立即同步</button>' +
+          '<button class="btn btn-secondary btn-sm" id="kb-gd-edit">修改文件夹</button>' +
+          "</div>";
+      } else {
+        // Need to select folders
+        html += '<p class="hint">加载文件夹列表...</p>';
+      }
+
+      html += "</div>";
+    }
+
+    html += '<div id="kb-gd-status" class="status-msg"></div>';
+    html += "</div>";
+    return html;
+  }
+
+  function renderNotionCard() {
+    var n = state.knowledge.notion;
+
+    if (!n.connected) {
+      return (
+        '<div class="card service-card">' +
+        '<div class="service-header">' +
+        "<h2>Notion</h2>" +
+        '<span class="badge badge-error">未授权</span>' +
+        "</div>" +
+        '<p class="hint">需要先授权 Notion 账号才能同步数据库。</p>' +
+        '<div class="actions">' +
+        '<a href="#settings" class="btn btn-primary btn-sm">前往授权</a>' +
+        "</div>" +
+        "</div>"
+      );
+    }
+
+    var toggleChecked = n.enabled ? " checked" : "";
+
+    var html =
+      '<div class="card service-card">' +
+      '<div class="service-header">' +
+      "<h2>Notion</h2>" +
+      (n.enabled && n.selectedDatabases.length > 0
+        ? '<span class="badge badge-success">运行中</span>'
+        : n.enabled
+          ? '<span class="badge badge-pending">待选择数据库</span>'
+          : '<span class="badge badge-pending">已授权</span>') +
+      "</div>" +
+      '<div class="kb-toggle-row">' +
+      '<span class="config-label">启用同步</span>' +
+      '<label class="toggle-switch">' +
+      '<input type="checkbox" id="kb-n-toggle"' +
+      toggleChecked +
+      ">" +
+      '<span class="toggle-slider"></span>' +
+      "</label>" +
+      "</div>";
+
+    if (n.enabled) {
+      html += '<div id="kb-n-databases">';
+
+      if (n.selectedDatabases.length > 0) {
+        html +=
+          '<details class="kb-details">' +
+          "<summary>已选 " +
+          n.selectedDatabases.length +
+          " 个数据库</summary>" +
+          '<ul class="kb-folder-list">';
+        for (var j = 0; j < n.selectedDatabases.length; j++) {
+          html += "<li>" + esc(n.selectedDatabases[j]) + "</li>";
+        }
+        html += "</ul></details>";
+
+        if (n.lastSynced) {
+          html +=
+            '<div class="kb-sync-info">上次同步: ' +
+            formatTime(n.lastSynced) +
+            " | 文件数: " +
+            n.fileCount +
+            "</div>";
+        }
+
+        html +=
+          '<div class="actions">' +
+          '<button class="btn btn-primary btn-sm" id="kb-n-sync">立即同步</button>' +
+          '<button class="btn btn-secondary btn-sm" id="kb-n-edit">修改数据库</button>' +
+          "</div>";
+      } else {
+        html += '<p class="hint">加载数据库列表...</p>';
+      }
+
+      html += "</div>";
+    }
+
+    html += '<div id="kb-n-status" class="status-msg"></div>';
+    html += "</div>";
+    return html;
+  }
+
+  function bindKnowledgeHandlers() {
+    // Google Drive toggle
+    bind("kb-gd-toggle", "change", function () {
+      var checked = document.getElementById("kb-gd-toggle").checked;
+      state.knowledge.googleDrive.enabled = checked;
+      if (checked && state.knowledge.googleDrive.selectedFolders.length === 0) {
+        loadGoogleDriveFolders();
+      }
+      saveKnowledgeConfig(function () {
+        renderKnowledgeContent();
+      });
+    });
+
+    // Notion toggle
+    bind("kb-n-toggle", "change", function () {
+      var checked = document.getElementById("kb-n-toggle").checked;
+      state.knowledge.notion.enabled = checked;
+      if (checked && state.knowledge.notion.selectedDatabases.length === 0) {
+        loadNotionDatabases();
+      }
+      saveKnowledgeConfig(function () {
+        renderKnowledgeContent();
+      });
+    });
+
+    // Google Drive sync
+    bind("kb-gd-sync", "click", function () {
+      var statusEl = $("#kb-gd-status");
+      if (statusEl) statusEl.innerHTML = '<span class="badge badge-pending">同步中...</span>';
+      api("/api/knowledge/sync", {
+        method: "POST",
+        body: JSON.stringify({ source: "google-drive" }),
+      }).then(function (d) {
+        if (d.ok) {
+          var r = d.results && d.results["google-drive"];
+          if (r && !r.skipped) {
+            if (statusEl)
+              statusEl.innerHTML =
+                '<span class="badge badge-success">同步完成: 新增 ' +
+                (r.added || 0) +
+                ", 更新 " +
+                (r.updated || 0) +
+                ", 删除 " +
+                (r.deleted || 0) +
+                "</span>";
+          } else {
+            if (statusEl) statusEl.innerHTML = '<span class="badge badge-success">同步完成</span>';
+          }
+          // Refresh status
+          api("/api/knowledge/status").then(function (s) {
+            var gdStatus = s["google-drive"] || {};
+            state.knowledge.googleDrive.lastSynced = gdStatus.lastSynced || null;
+            state.knowledge.googleDrive.fileCount = gdStatus.fileCount || 0;
+          });
+        } else {
+          if (statusEl)
+            statusEl.innerHTML =
+              '<span class="badge badge-error">' + esc(d.error || "同步失败") + "</span>";
+        }
+      });
+    });
+
+    // Notion sync
+    bind("kb-n-sync", "click", function () {
+      var statusEl = $("#kb-n-status");
+      if (statusEl) statusEl.innerHTML = '<span class="badge badge-pending">同步中...</span>';
+      api("/api/knowledge/sync", {
+        method: "POST",
+        body: JSON.stringify({ source: "notion" }),
+      }).then(function (d) {
+        if (d.ok) {
+          var r = d.results && d.results["notion"];
+          if (r && !r.skipped) {
+            if (statusEl)
+              statusEl.innerHTML =
+                '<span class="badge badge-success">同步完成: 新增 ' +
+                (r.added || 0) +
+                ", 更新 " +
+                (r.updated || 0) +
+                ", 删除 " +
+                (r.deleted || 0) +
+                "</span>";
+          } else {
+            if (statusEl) statusEl.innerHTML = '<span class="badge badge-success">同步完成</span>';
+          }
+          api("/api/knowledge/status").then(function (s) {
+            var nStatus = s["notion"] || {};
+            state.knowledge.notion.lastSynced = nStatus.lastSynced || null;
+            state.knowledge.notion.fileCount = nStatus.fileCount || 0;
+          });
+        } else {
+          if (statusEl)
+            statusEl.innerHTML =
+              '<span class="badge badge-error">' + esc(d.error || "同步失败") + "</span>";
+        }
+      });
+    });
+
+    // Google Drive edit folders
+    bind("kb-gd-edit", "click", function () {
+      state.knowledge.googleDrive.selectedFolders = [];
+      loadGoogleDriveFolders();
+    });
+
+    // Notion edit databases
+    bind("kb-n-edit", "click", function () {
+      state.knowledge.notion.selectedDatabases = [];
+      loadNotionDatabases();
+    });
+
+    // Auto-load folder/database lists if enabled but none selected
+    if (
+      state.knowledge.googleDrive.enabled &&
+      state.knowledge.googleDrive.selectedFolders.length === 0
+    ) {
+      loadGoogleDriveFolders();
+    }
+    if (state.knowledge.notion.enabled && state.knowledge.notion.selectedDatabases.length === 0) {
+      loadNotionDatabases();
+    }
+  }
+
+  function loadGoogleDriveFolders() {
+    var container = document.getElementById("kb-gd-folders");
+    if (!container) return;
+    container.innerHTML = '<p class="hint">加载文件夹列表...</p>';
+
+    api("/api/knowledge/google-drive/folders").then(function (d) {
+      if (!d.connected) {
+        container.innerHTML = '<p class="badge badge-error">Google 未授权</p>';
+        return;
+      }
+      state.knowledge.googleDrive.folders = d.folders || [];
+      var folders = state.knowledge.googleDrive.folders;
+      var selected = state.knowledge.googleDrive.selectedFolders;
+
+      if (folders.length === 0) {
+        container.innerHTML =
+          '<p class="hint">未找到文件夹。请先在 Google Drive 中创建文件夹。</p>';
+        return;
+      }
+
+      var html = '<div class="kb-checkbox-list">';
+      for (var i = 0; i < folders.length; i++) {
+        var f = folders[i];
+        var isChecked = selected.indexOf(f.name) !== -1 ? " checked" : "";
+        html +=
+          '<label class="kb-checkbox-item">' +
+          '<input type="checkbox" value="' +
+          esc(f.name) +
+          '" class="kb-gd-folder-cb"' +
+          isChecked +
+          ">" +
+          esc(f.name) +
+          "</label>";
+      }
+      html += "</div>";
+      html +=
+        '<div class="actions">' +
+        '<button class="btn btn-primary btn-sm" id="kb-gd-save">保存选择</button>' +
+        "</div>";
+      container.innerHTML = html;
+
+      bind("kb-gd-save", "click", function () {
+        var cbs = document.querySelectorAll(".kb-gd-folder-cb");
+        var chosen = [];
+        for (var j = 0; j < cbs.length; j++) {
+          if (cbs[j].checked) chosen.push(cbs[j].value);
+        }
+        state.knowledge.googleDrive.selectedFolders = chosen;
+        saveKnowledgeConfig(function () {
+          renderKnowledgeContent();
+        });
+      });
+    });
+  }
+
+  function loadNotionDatabases() {
+    var container = document.getElementById("kb-n-databases");
+    if (!container) return;
+    container.innerHTML = '<p class="hint">加载数据库列表...</p>';
+
+    api("/api/knowledge/notion/databases").then(function (d) {
+      if (!d.connected) {
+        container.innerHTML = '<p class="badge badge-error">Notion 未授权</p>';
+        return;
+      }
+      state.knowledge.notion.databases = d.databases || [];
+      var databases = state.knowledge.notion.databases;
+      var selected = state.knowledge.notion.selectedDatabases;
+
+      if (databases.length === 0) {
+        container.innerHTML = '<p class="hint">未找到数据库。请先在 Notion 中创建数据库。</p>';
+        return;
+      }
+
+      var html = '<div class="kb-checkbox-list">';
+      for (var i = 0; i < databases.length; i++) {
+        var db = databases[i];
+        var isChecked = selected.indexOf(db.id) !== -1 ? " checked" : "";
+        html +=
+          '<label class="kb-checkbox-item">' +
+          '<input type="checkbox" value="' +
+          esc(db.id) +
+          '" class="kb-n-db-cb"' +
+          isChecked +
+          ">" +
+          esc(db.name) +
+          "</label>";
+      }
+      html += "</div>";
+      html +=
+        '<div class="actions">' +
+        '<button class="btn btn-primary btn-sm" id="kb-n-save">保存选择</button>' +
+        "</div>";
+      container.innerHTML = html;
+
+      bind("kb-n-save", "click", function () {
+        var cbs = document.querySelectorAll(".kb-n-db-cb");
+        var chosen = [];
+        for (var j = 0; j < cbs.length; j++) {
+          if (cbs[j].checked) chosen.push(cbs[j].value);
+        }
+        state.knowledge.notion.selectedDatabases = chosen;
+        saveKnowledgeConfig(function () {
+          renderKnowledgeContent();
+        });
+      });
+    });
+  }
+
+  function saveKnowledgeConfig(onDone) {
+    var payload = {};
+    if (state.knowledge.googleDrive.connected) {
+      payload["google-drive"] = {
+        enabled: state.knowledge.googleDrive.enabled,
+        folders: state.knowledge.googleDrive.selectedFolders,
+      };
+    }
+    if (state.knowledge.notion.connected) {
+      payload["notion"] = {
+        enabled: state.knowledge.notion.enabled,
+        databases: state.knowledge.notion.selectedDatabases,
+      };
+    }
+
+    api("/api/knowledge/config", {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }).then(function () {
+      if (onDone) onDone();
+    });
+  }
+
+  function formatTime(isoStr) {
+    if (!isoStr) return "从未";
+    try {
+      var d = new Date(isoStr);
+      return d.toLocaleString("zh-CN");
+    } catch (e) {
+      return isoStr;
+    }
   }
 
   // ── Settings page (OAuth service management) ──────────────

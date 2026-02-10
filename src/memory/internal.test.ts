@@ -2,7 +2,27 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { chunkMarkdown, listMemoryFiles, normalizeExtraMemoryPaths } from "./internal.js";
+import {
+  chunkMarkdown,
+  isMemoryPath,
+  listMemoryFiles,
+  normalizeExtraMemoryPaths,
+} from "./internal.js";
+
+describe("isMemoryPath", () => {
+  it("accepts knowledge/ prefix", () => {
+    expect(isMemoryPath("knowledge/google-drive/report.md")).toBe(true);
+  });
+  it("accepts knowledge/ root files", () => {
+    expect(isMemoryPath("knowledge/notes.md")).toBe(true);
+  });
+  it("accepts nested knowledge paths", () => {
+    expect(isMemoryPath("knowledge/notion/workspace/page.md")).toBe(true);
+  });
+  it("rejects knowledgeFoo/ (not a prefix match)", () => {
+    expect(isMemoryPath("knowledgeFoo/bar.md")).toBe(false);
+  });
+});
 
 describe("normalizeExtraMemoryPaths", () => {
   it("trims, resolves, and dedupes paths", () => {
@@ -108,6 +128,31 @@ describe("listMemoryFiles", () => {
       expect(files.some((file) => file.endsWith("linked.md"))).toBe(false);
       expect(files.some((file) => file.endsWith("nested.md"))).toBe(false);
     }
+  });
+
+  it("includes files from knowledge/ directory", async () => {
+    await fs.writeFile(path.join(tmpDir, "MEMORY.md"), "# Memory");
+    const knowledgeDir = path.join(tmpDir, "knowledge", "google-drive");
+    await fs.mkdir(knowledgeDir, { recursive: true });
+    await fs.writeFile(path.join(knowledgeDir, "report.md"), "# Report");
+    await fs.writeFile(path.join(knowledgeDir, "notes.md"), "# Notes");
+    await fs.writeFile(path.join(knowledgeDir, "image.png"), "not markdown");
+
+    const files = await listMemoryFiles(tmpDir);
+    expect(files).toHaveLength(3); // MEMORY.md + 2 knowledge .md files
+    expect(files.some((f) => f.endsWith("report.md"))).toBe(true);
+    expect(files.some((f) => f.endsWith("notes.md"))).toBe(true);
+    expect(files.some((f) => f.endsWith("image.png"))).toBe(false);
+  });
+
+  it("includes files from nested knowledge/ subdirectories", async () => {
+    const notionDir = path.join(tmpDir, "knowledge", "notion", "workspace");
+    await fs.mkdir(notionDir, { recursive: true });
+    await fs.writeFile(path.join(notionDir, "page.md"), "# Page");
+
+    const files = await listMemoryFiles(tmpDir);
+    expect(files).toHaveLength(1);
+    expect(files.some((f) => f.endsWith("page.md"))).toBe(true);
   });
 });
 

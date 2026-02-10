@@ -256,5 +256,16 @@ export { collectWhatsAppStatusIssues } from "../channels/plugins/status-issues/w
 // Channel: BlueBubbles
 export { collectBlueBubblesStatusIssues } from "../channels/plugins/status-issues/bluebubbles.js";
 
+// Skills snapshot
+export { bumpSkillsSnapshotVersion } from "../agents/skills/refresh.js";
+
+// Auth profiles
+export { upsertAuthProfile } from "../agents/auth-profiles/profiles.js";
+export type { TokenCredential, AuthProfileCredential } from "../agents/auth-profiles/types.js";
+export { applyAuthProfileConfig } from "../commands/onboard-auth.config-core.js";
+
+// Agent scope
+export { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../agents/agent-scope.js";
+
 // Media utilities
 export { loadWebMedia, type WebMediaResult } from "../web/media.js";

@@ -51,7 +51,7 @@ export function isMemoryPath(relPath: string): boolean {
   if (normalized === "MEMORY.md" || normalized === "memory.md") {
     return true;
   }
-  return normalized.startsWith("memory/");
+  return normalized.startsWith("memory/") || normalized.startsWith("knowledge/");
 }
 
 async function walkDir(dir: string, files: string[]) {
@@ -103,6 +103,15 @@ export async function listMemoryFiles(
     const dirStat = await fs.lstat(memoryDir);
     if (!dirStat.isSymbolicLink() && dirStat.isDirectory()) {
       await walkDir(memoryDir, result);
+    }
+  } catch {}
+
+  // Scan knowledge/ directory
+  const knowledgeDir = path.join(workspaceDir, "knowledge");
+  try {
+    const kdStat = await fs.lstat(knowledgeDir);
+    if (!kdStat.isSymbolicLink() && kdStat.isDirectory()) {
+      await walkDir(knowledgeDir, result);
     }
   } catch {}
 

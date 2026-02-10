@@ -18,7 +18,20 @@ export const BUNDLED_ENABLED_BY_DEFAULT = new Set<string>([
   "telegram",
   "whatsapp",
   "google-services",
+  "google-places",
+  "amap",
+  "todoist",
+  "notion",
+  "spotify",
+  "openweathermap",
+  "amadeus",
   "memory-core",
+  "ezbookkeeping",
+  "fitbit",
+  "dropbox",
+  "microsoft365",
+  "knowledge-base",
+  "shipcast",
 ]);
 
 const normalizeList = (value: unknown): string[] => {

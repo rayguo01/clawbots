@@ -61,6 +61,23 @@ function buildMemorySection(params: {
       "Citations: include Source: <path#line> when it helps the user verify memory snippets.",
     );
   }
+
+  // Knowledge base guidance
+  lines.push("");
+  lines.push("### Knowledge Base");
+  lines.push(
+    "Your memory_search also covers the user's knowledge base (documents synced from Google Drive, Notion, etc. stored under knowledge/).",
+  );
+  lines.push(
+    'When search results come from knowledge/ files, cite the original source: e.g. "根据你 Google Drive 里的《XX报告》..." or "根据你 Notion 中的页面..."',
+  );
+  lines.push('When search results come from memory/ files, use: "你之前提到过..."');
+  if (params.availableTools.has("knowledge_sync")) {
+    lines.push(
+      "If the user mentions their documents might be outdated, use knowledge_sync to trigger a refresh.",
+    );
+  }
+
   lines.push("");
   return lines;
 }
@@ -225,7 +242,7 @@ export function buildAgentSystemPrompt(params: {
     ls: "List directory contents",
     exec: "Run shell commands (pty available for TTY-required CLIs)",
     process: "Manage background exec sessions",
-    web_search: "Search the web (Brave API)",
+    web_search: "Search the web",
     web_fetch: "Fetch and extract readable content from a URL",
     // Channel docking: add login tools here when a channel needs interactive linking.
     browser: "Control web browser",

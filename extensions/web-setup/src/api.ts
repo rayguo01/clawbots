@@ -3,7 +3,7 @@ import { getSetupStatus } from "./config-bridge.js";
 import { sendJson } from "./helpers.js";
 import { handleModelSave } from "./model-setup.js";
 import { registerOAuthRoutes } from "./oauth/routes.js";
-import { handleSkillsSave, handleSkillsStatus } from "./skills-setup.js";
+import { handleSkillsSave, handleSkillsStatus, handleSkillsToggle } from "./skills-setup.js";
 import { handleTelegramSave, handleTelegramVerify } from "./telegram-setup.js";
 import { handleWhatsAppQr, handleWhatsAppStatus } from "./whatsapp-setup.js";
 
@@ -31,6 +31,7 @@ export function registerApiRoutes(api: OpenClawPluginApi): void {
   // Skills
   api.registerHttpRoute({ path: "/api/setup/skills/status", handler: handleSkillsStatus });
   api.registerHttpRoute({ path: "/api/setup/skills/save", handler: handleSkillsSave });
+  api.registerHttpRoute({ path: "/api/setup/skills/toggle", handler: handleSkillsToggle });
 
   // OAuth
   registerOAuthRoutes(api);

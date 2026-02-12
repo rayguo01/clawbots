@@ -20,7 +20,8 @@ export async function handleSkillsStatus(
 ): Promise<void> {
   try {
     const config = loadConfig();
-    const entry = config.skills?.entries?.["nano-banana-pro"];
+    const skillEntries = config.skills?.entries ?? {};
+    const entry = skillEntries["nano-banana-pro"];
     const hasApiKey = !!entry?.apiKey;
     const hasEnvKey = !!(config.env?.vars as Record<string, string> | undefined)?.[
       "GEMINI_API_KEY"
@@ -43,83 +44,109 @@ export async function handleSkillsStatus(
       !!process.env.NANOBOTS_USDA_API_KEY && process.env.NANOBOTS_USDA_API_KEY !== "DEMO_KEY";
     const hasUv = hasBinary("uv");
 
-    const ouraEntry = config.skills?.entries?.["oura-ring"];
+    const ouraEntry = skillEntries["oura-ring"];
     const hasOuraKey = !!ouraEntry?.apiKey || !!process.env.OURA_TOKEN;
 
     const hasGitHubOAuth = !!(await loadToken("github"));
     const hasTwitterOAuth = !!(await loadToken("twitter"));
 
+    const isEnabled = (id: string) => skillEntries[id]?.enabled !== false;
+
     sendJson(res, 200, {
-      "nano-banana-pro": { configured: hasApiKey || hasEnvKey },
-      ezbookkeeping: { configured: !!ezbUrl },
-      "voice-message": { configured: audioEnabled },
-      "food-scout": { configured: hasUv, hasFullApi: hasUsdaKey },
-      "xiao-fan-ka": { configured: hasPython && hasDdgs },
-      "xiao-chu-niang": { configured: true },
-      "ai-news-collector": { configured: true },
-      "deep-research": { configured: (hasApiKey || hasEnvKey) && hasBinary("uv") },
-      "travel-planner": { configured: hasCaminoKey },
-      luma: { configured: hasPython },
-      "tophub-trends": { configured: hasPython },
-      "world-news-trends": { configured: hasPython },
-      humanizer: { configured: true },
-      "oura-ring": { configured: hasOuraKey && hasUv },
-      "contract-agent": { configured: true },
-      shipcast: { configured: hasGitHubOAuth && hasTwitterOAuth },
+      "nano-banana-pro": {
+        configured: hasApiKey || hasEnvKey,
+        enabled: isEnabled("nano-banana-pro"),
+      },
+      ezbookkeeping: { configured: !!ezbUrl, enabled: isEnabled("ezbookkeeping") },
+      "voice-message": { configured: audioEnabled, enabled: isEnabled("voice-message") },
+      "food-scout": { configured: hasUv, hasFullApi: hasUsdaKey, enabled: isEnabled("food-scout") },
+      "xiao-fan-ka": { configured: hasPython && hasDdgs, enabled: isEnabled("xiao-fan-ka") },
+      "xiao-chu-niang": { configured: true, enabled: isEnabled("xiao-chu-niang") },
+      "ai-news-collector": { configured: true, enabled: isEnabled("ai-news-collector") },
+      "deep-research": {
+        configured: (hasApiKey || hasEnvKey) && hasBinary("uv"),
+        enabled: isEnabled("deep-research"),
+      },
+      "travel-planner": { configured: hasCaminoKey, enabled: isEnabled("travel-planner") },
+      luma: { configured: hasPython, enabled: isEnabled("luma") },
+      "tophub-trends": { configured: hasPython, enabled: isEnabled("tophub-trends") },
+      "world-news-trends": { configured: hasPython, enabled: isEnabled("world-news-trends") },
+      humanizer: { configured: true, enabled: isEnabled("humanizer") },
+      "oura-ring": { configured: hasOuraKey && hasUv, enabled: isEnabled("oura-ring") },
+      "contract-agent": { configured: true, enabled: isEnabled("contract-agent") },
+      shipcast: { configured: hasGitHubOAuth && hasTwitterOAuth, enabled: isEnabled("shipcast") },
       // Baoyu visual skills — depend on nano-banana-pro for image generation
-      "baoyu-article-illustrator": { configured: hasApiKey || hasEnvKey },
-      "baoyu-infographic": { configured: hasApiKey || hasEnvKey },
-      "baoyu-xhs-images": { configured: hasApiKey || hasEnvKey },
-      "baoyu-cover-image": { configured: hasApiKey || hasEnvKey },
+      "baoyu-article-illustrator": {
+        configured: hasApiKey || hasEnvKey,
+        enabled: isEnabled("baoyu-article-illustrator"),
+      },
+      "baoyu-infographic": {
+        configured: hasApiKey || hasEnvKey,
+        enabled: isEnabled("baoyu-infographic"),
+      },
+      "baoyu-xhs-images": {
+        configured: hasApiKey || hasEnvKey,
+        enabled: isEnabled("baoyu-xhs-images"),
+      },
+      "baoyu-cover-image": {
+        configured: hasApiKey || hasEnvKey,
+        enabled: isEnabled("baoyu-cover-image"),
+      },
       // Baoyu utility skills — need bun runtime
-      "baoyu-danger-x-to-markdown": { configured: hasBinary("bun") },
-      "baoyu-url-to-markdown": { configured: hasBinary("bun") && hasBinary("chromium") },
+      "baoyu-danger-x-to-markdown": {
+        configured: hasBinary("bun"),
+        enabled: isEnabled("baoyu-danger-x-to-markdown"),
+      },
+      "baoyu-url-to-markdown": {
+        configured: hasBinary("bun") && hasBinary("chromium"),
+        enabled: isEnabled("baoyu-url-to-markdown"),
+      },
       // Marketing skills — pure text, always available
-      "copy-editing": { configured: true },
-      copywriting: { configured: true },
-      "marketing-psychology": { configured: true },
-      "marketing-ideas": { configured: true },
-      "social-content": { configured: true },
-      "pricing-strategy": { configured: true },
-      "page-cro": { configured: true },
-      "launch-strategy": { configured: true },
-      "onboarding-cro": { configured: true },
-      "email-sequence": { configured: true },
+      "copy-editing": { configured: true, enabled: isEnabled("copy-editing") },
+      copywriting: { configured: true, enabled: isEnabled("copywriting") },
+      "marketing-psychology": { configured: true, enabled: isEnabled("marketing-psychology") },
+      "marketing-ideas": { configured: true, enabled: isEnabled("marketing-ideas") },
+      "social-content": { configured: true, enabled: isEnabled("social-content") },
+      "pricing-strategy": { configured: true, enabled: isEnabled("pricing-strategy") },
+      "page-cro": { configured: true, enabled: isEnabled("page-cro") },
+      "launch-strategy": { configured: true, enabled: isEnabled("launch-strategy") },
+      "onboarding-cro": { configured: true, enabled: isEnabled("onboarding-cro") },
+      "email-sequence": { configured: true, enabled: isEnabled("email-sequence") },
     });
   } catch {
     sendJson(res, 200, {
-      "nano-banana-pro": { configured: false },
-      ezbookkeeping: { configured: false },
-      "voice-message": { configured: false },
-      "food-scout": { configured: false },
-      "xiao-fan-ka": { configured: false },
-      "xiao-chu-niang": { configured: true },
-      "ai-news-collector": { configured: true },
-      "deep-research": { configured: false },
-      "travel-planner": { configured: false },
-      luma: { configured: false },
-      "tophub-trends": { configured: false },
-      "world-news-trends": { configured: false },
-      humanizer: { configured: true },
-      "oura-ring": { configured: false },
-      "contract-agent": { configured: true },
-      shipcast: { configured: false },
-      "baoyu-article-illustrator": { configured: false },
-      "baoyu-infographic": { configured: false },
-      "baoyu-xhs-images": { configured: false },
-      "baoyu-cover-image": { configured: false },
-      "baoyu-danger-x-to-markdown": { configured: false },
-      "baoyu-url-to-markdown": { configured: false },
-      "copy-editing": { configured: true },
-      copywriting: { configured: true },
-      "marketing-psychology": { configured: true },
-      "marketing-ideas": { configured: true },
-      "social-content": { configured: true },
-      "pricing-strategy": { configured: true },
-      "page-cro": { configured: true },
-      "launch-strategy": { configured: true },
-      "onboarding-cro": { configured: true },
-      "email-sequence": { configured: true },
+      "nano-banana-pro": { configured: false, enabled: true },
+      ezbookkeeping: { configured: false, enabled: true },
+      "voice-message": { configured: false, enabled: true },
+      "food-scout": { configured: false, enabled: true },
+      "xiao-fan-ka": { configured: false, enabled: true },
+      "xiao-chu-niang": { configured: true, enabled: true },
+      "ai-news-collector": { configured: true, enabled: true },
+      "deep-research": { configured: false, enabled: true },
+      "travel-planner": { configured: false, enabled: true },
+      luma: { configured: false, enabled: true },
+      "tophub-trends": { configured: false, enabled: true },
+      "world-news-trends": { configured: false, enabled: true },
+      humanizer: { configured: true, enabled: true },
+      "oura-ring": { configured: false, enabled: true },
+      "contract-agent": { configured: true, enabled: true },
+      shipcast: { configured: false, enabled: true },
+      "baoyu-article-illustrator": { configured: false, enabled: true },
+      "baoyu-infographic": { configured: false, enabled: true },
+      "baoyu-xhs-images": { configured: false, enabled: true },
+      "baoyu-cover-image": { configured: false, enabled: true },
+      "baoyu-danger-x-to-markdown": { configured: false, enabled: true },
+      "baoyu-url-to-markdown": { configured: false, enabled: true },
+      "copy-editing": { configured: true, enabled: true },
+      copywriting: { configured: true, enabled: true },
+      "marketing-psychology": { configured: true, enabled: true },
+      "marketing-ideas": { configured: true, enabled: true },
+      "social-content": { configured: true, enabled: true },
+      "pricing-strategy": { configured: true, enabled: true },
+      "page-cro": { configured: true, enabled: true },
+      "launch-strategy": { configured: true, enabled: true },
+      "onboarding-cro": { configured: true, enabled: true },
+      "email-sequence": { configured: true, enabled: true },
     });
   }
 }
@@ -164,6 +191,40 @@ export async function handleSkillsSave(req: IncomingMessage, res: ServerResponse
     });
 
     // Force skills snapshot rebuild so existing sessions pick up the new key
+    bumpSkillsSnapshotVersion({ reason: "manual" });
+
+    sendJson(res, 200, { ok: true });
+  } catch (err) {
+    sendJson(res, 500, { ok: false, error: String(err) });
+  }
+}
+
+export async function handleSkillsToggle(req: IncomingMessage, res: ServerResponse): Promise<void> {
+  if (req.method !== "POST") {
+    res.statusCode = 405;
+    res.end("Method Not Allowed");
+    return;
+  }
+
+  const body = (await readJsonBody(req)) as { skillId?: string; enabled?: boolean };
+  const { skillId, enabled } = body ?? {};
+
+  if (!skillId || typeof enabled !== "boolean") {
+    sendJson(res, 400, { ok: false, error: "skillId (string) and enabled (boolean) are required" });
+    return;
+  }
+
+  try {
+    await updateConfig((config) => {
+      config.skills ??= {};
+      config.skills.entries ??= {};
+      config.skills.entries[skillId] = {
+        ...config.skills.entries[skillId],
+        enabled,
+      };
+      return config;
+    });
+
     bumpSkillsSnapshotVersion({ reason: "manual" });
 
     sendJson(res, 200, { ok: true });

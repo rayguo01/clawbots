@@ -37,7 +37,7 @@ export async function onTimer(state: CronServiceState) {
   state.running = true;
   try {
     await locked(state, async () => {
-      await ensureLoaded(state, { forceReload: true });
+      await ensureLoaded(state, { forceReload: true, skipRecompute: true });
       await runDueJobs(state);
       await persist(state);
       armTimer(state);

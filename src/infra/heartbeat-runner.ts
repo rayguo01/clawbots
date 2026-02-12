@@ -490,7 +490,9 @@ export async function runHeartbeatOnce(opts: {
   const cfg = opts.cfg ?? loadConfig();
   const agentId = normalizeAgentId(opts.agentId ?? resolveDefaultAgentId(cfg));
   const heartbeat = opts.heartbeat ?? resolveHeartbeatConfig(cfg, agentId);
-  if (!heartbeatsEnabled) {
+  const isExplicitWake =
+    opts.reason != null && opts.reason !== "interval" && opts.reason !== "requested";
+  if (!heartbeatsEnabled && !isExplicitWake) {
     return { status: "skipped", reason: "disabled" };
   }
   if (!isHeartbeatEnabledForAgent(cfg, agentId)) {
@@ -512,13 +514,18 @@ export async function runHeartbeatOnce(opts: {
 
   // Skip heartbeat if HEARTBEAT.md exists but has no actionable content.
   // This saves API calls/costs when the file is effectively empty (only comments/headers).
-  // EXCEPTION: Don't skip for exec events - they have pending system events to process.
+  // EXCEPTION: Don't skip for exec events or explicit wakes (cron triggers etc.) -
+  // they have pending system events to process regardless of HEARTBEAT.md content.
   const isExecEventReason = opts.reason === "exec-event";
   const workspaceDir = resolveAgentWorkspaceDir(cfg, agentId);
   const heartbeatFilePath = path.join(workspaceDir, DEFAULT_HEARTBEAT_FILENAME);
   try {
     const heartbeatFileContent = await fs.readFile(heartbeatFilePath, "utf-8");
-    if (isHeartbeatContentEffectivelyEmpty(heartbeatFileContent) && !isExecEventReason) {
+    if (
+      isHeartbeatContentEffectivelyEmpty(heartbeatFileContent) &&
+      !isExecEventReason &&
+      !isExplicitWake
+    ) {
       emitHeartbeatEvent({
         status: "skipped",
         reason: "empty-heartbeat-file",
@@ -943,7 +950,13 @@ export function startHeartbeatRunner(opts: {
   };
 
   const run: HeartbeatWakeHandler = async (params) => {
-    if (!heartbeatsEnabled) {
+    // Allow cron-triggered and exec-event wakes to bypass the heartbeatsEnabled
+    // flag. Clients disable heartbeats while connected (to save LLM costs for
+    // periodic checks), but cron reminders and exec results must still be
+    // delivered promptly.
+    const isExplicitWake =
+      params?.reason != null && params.reason !== "interval" && params.reason !== "requested";
+    if (!heartbeatsEnabled && !isExplicitWake) {
       return {
         status: "skipped",
         reason: "disabled",
@@ -955,7 +968,6 @@ export function startHeartbeatRunner(opts: {
         reason: "disabled",
       } satisfies HeartbeatRunResult;
     }
-
     const reason = params?.reason;
     const isInterval = reason === "interval";
     const startedAt = Date.now();

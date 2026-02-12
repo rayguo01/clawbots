@@ -42,7 +42,7 @@ RUN apt-get update && \
       chromium && \
     pip3 install --break-system-packages uv ddgs && \
     export BUN_INSTALL=/usr/local && curl -fsSL https://bun.sh/install | bash && \
-    apt-get purge -y curl unzip && \
+    apt-get purge -y unzip && \
     apt-get autoremove -y && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 

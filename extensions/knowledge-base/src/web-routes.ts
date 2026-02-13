@@ -1,6 +1,8 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
+import fs from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   loadConfig,
   writeConfigFile,
@@ -12,7 +14,7 @@ import type { KnowledgeConfig } from "./types.js";
 import { googleFetch } from "../../google-services/src/google-api.js";
 import { notionFetch } from "../../notion/src/notion-api.js";
 import { loadToken } from "../../web-setup/src/oauth/store.js";
-import { syncGoogleDrive } from "./connectors/google-drive.js";
+import { syncGoogleDrive, createStructureOnGoogleDrive } from "./connectors/google-drive.js";
 import { syncNotion } from "./connectors/notion.js";
 import { loadSyncState } from "./sync-state.js";
 
@@ -35,6 +37,37 @@ function resolveKnowledgeDir(): string {
   const agentId = resolveDefaultAgentId(cfg);
   const workspaceDir = resolveAgentWorkspaceDir(cfg, agentId);
   return path.join(workspaceDir, "knowledge");
+}
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+async function loadCompanyTemplateEntries(): Promise<Array<{ path: string; content?: string }>> {
+  const entries: Array<{ path: string; content?: string }> = [];
+  const templateDir = path.resolve(__dirname, "..", "templates", "company");
+  const today = new Date().toISOString().split("T")[0];
+
+  async function walk(dir: string, prefix: string): Promise<void> {
+    let items;
+    try {
+      items = await fs.readdir(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const item of items) {
+      const itemPath = prefix ? prefix + "/" + item.name : item.name;
+      if (item.isDirectory()) {
+        entries.push({ path: itemPath });
+        await walk(path.join(dir, item.name), itemPath);
+      } else if (item.name.endsWith(".md")) {
+        let content = await fs.readFile(path.join(dir, item.name), "utf-8");
+        content = content.replace(/\{\{date\}\}/g, today);
+        entries.push({ path: itemPath, content });
+      }
+    }
+  }
+
+  await walk(templateDir, "");
+  return entries;
 }
 
 /**
@@ -232,6 +265,86 @@ export function registerKnowledgeRoutes(api: OpenClawPluginApi) {
         }
 
         sendJson(res, 200, { ok: true, results });
+      } catch (err) {
+        sendJson(res, 500, { ok: false, error: err instanceof Error ? err.message : String(err) });
+      }
+    },
+  });
+
+  // POST /api/knowledge/create-structure — create directory structure on cloud
+  api.registerHttpRoute({
+    path: "/api/knowledge/create-structure",
+    handler: async (req, res) => {
+      if (req.method !== "POST") {
+        res.writeHead(405);
+        res.end();
+        return;
+      }
+
+      try {
+        const body = await readBody(req);
+        const { template, rootName, target } = JSON.parse(body) as {
+          template: "personal" | "company";
+          rootName: string;
+          target: "google-drive" | "dropbox";
+        };
+
+        if (!rootName || !target) {
+          sendJson(res, 400, { error: "Missing rootName or target" });
+          return;
+        }
+
+        if (target === "dropbox") {
+          sendJson(res, 501, { error: "Dropbox support coming soon" });
+          return;
+        }
+
+        let entries: Array<{ path: string; content?: string }>;
+
+        if (template === "personal") {
+          entries = [
+            { path: "00_收件箱" },
+            { path: "10_日记" },
+            { path: "20_项目" },
+            { path: "30_研究" },
+            { path: "40_知识库" },
+            { path: "50_资源" },
+            { path: "90_计划" },
+            { path: "99_系统/归档" },
+            { path: "99_系统/提示词" },
+            { path: "99_系统/模板" },
+          ];
+        } else {
+          entries = await loadCompanyTemplateEntries();
+        }
+
+        const result = await createStructureOnGoogleDrive(rootName, entries);
+
+        // Auto-add root folder to knowledge sync config
+        if (result.folderId) {
+          try {
+            const snapshot = readConfigFileSnapshot();
+            const current = snapshot ? JSON.parse(snapshot) : {};
+            if (!current.knowledge) current.knowledge = {};
+            if (!current.knowledge["google-drive"]) {
+              current.knowledge["google-drive"] = { enabled: true, folders: [] };
+            }
+            const folders: string[] = current.knowledge["google-drive"].folders ?? [];
+            if (!folders.includes(rootName)) {
+              folders.push(rootName);
+              current.knowledge["google-drive"].folders = folders;
+              current.knowledge["google-drive"].enabled = true;
+              writeConfigFile(JSON.stringify(current, null, 2));
+            }
+          } catch {}
+        }
+
+        sendJson(res, 200, {
+          ok: true,
+          folderId: result.folderId,
+          created: result.created,
+          errors: result.errors,
+        });
       } catch (err) {
         sendJson(res, 500, { ok: false, error: err instanceof Error ? err.message : String(err) });
       }

@@ -14,6 +14,148 @@ import {
 
 export { resolveFileExtension, isGoogleDocType, sanitizeFileName } from "./google-drive-helpers.js";
 
+/**
+ * Create a folder in Google Drive. Returns the folder ID.
+ */
+export async function createGoogleDriveFolder(name: string, parentId?: string): Promise<string> {
+  const metadata: Record<string, unknown> = {
+    name,
+    mimeType: "application/vnd.google-apps.folder",
+  };
+  if (parentId) metadata.parents = [parentId];
+
+  const res = await googleFetch("/drive/v3/files", {
+    method: "POST",
+    body: JSON.stringify(metadata),
+  });
+  const data = (await res.json()) as { id: string };
+  return data.id;
+}
+
+/**
+ * Upload a text file to Google Drive. Returns the file ID.
+ */
+export async function uploadGoogleDriveFile(
+  name: string,
+  content: string,
+  parentId: string,
+): Promise<string> {
+  const boundary = "nanobots_boundary";
+  const metadata = JSON.stringify({
+    name,
+    parents: [parentId],
+  });
+
+  const body =
+    `--${boundary}\r\n` +
+    `Content-Type: application/json; charset=UTF-8\r\n\r\n` +
+    `${metadata}\r\n` +
+    `--${boundary}\r\n` +
+    `Content-Type: text/markdown; charset=UTF-8\r\n\r\n` +
+    `${content}\r\n` +
+    `--${boundary}--`;
+
+  const res = await googleFetch(
+    "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": `multipart/related; boundary=${boundary}`,
+      },
+      body,
+    },
+  );
+  const data = (await res.json()) as { id: string };
+  return data.id;
+}
+
+/**
+ * Find a folder by name under a parent (or root). Returns folder ID or null.
+ */
+export async function findGoogleDriveFolder(
+  name: string,
+  parentId?: string,
+): Promise<string | null> {
+  const parent = parentId ? `'${parentId}'` : "'root'";
+  const query = `name='${name.replace(/'/g, "\\'")}' and mimeType='application/vnd.google-apps.folder' and ${parent} in parents and trashed=false`;
+  const res = await googleFetch(
+    `/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id)&pageSize=1`,
+  );
+  const data = (await res.json()) as { files?: Array<{ id: string }> };
+  return data.files?.[0]?.id ?? null;
+}
+
+/**
+ * Recursively create a directory structure with files on Google Drive.
+ * entries is a flat list: { path: "dir/subdir/file.md", content?: "..." }
+ * Entries without content are folder-only entries.
+ */
+export async function createStructureOnGoogleDrive(
+  rootName: string,
+  entries: Array<{ path: string; content?: string }>,
+): Promise<{ folderId: string; created: { folders: number; files: number }; errors: string[] }> {
+  const result = { folderId: "", created: { folders: 0, files: 0 }, errors: [] as string[] };
+
+  // Create or find root folder
+  let rootId = await findGoogleDriveFolder(rootName);
+  if (!rootId) {
+    rootId = await createGoogleDriveFolder(rootName);
+    result.created.folders++;
+  }
+  result.folderId = rootId;
+
+  // Cache of created folder paths → IDs
+  const folderCache: Record<string, string> = { "": rootId };
+
+  async function ensureFolder(folderPath: string): Promise<string> {
+    if (folderCache[folderPath]) return folderCache[folderPath];
+    const parts = folderPath.split("/");
+    let currentPath = "";
+    let parentId = rootId;
+    for (const part of parts) {
+      currentPath = currentPath ? currentPath + "/" + part : part;
+      if (folderCache[currentPath]) {
+        parentId = folderCache[currentPath];
+        continue;
+      }
+      let folderId = await findGoogleDriveFolder(part, parentId);
+      if (!folderId) {
+        folderId = await createGoogleDriveFolder(part, parentId);
+        result.created.folders++;
+      }
+      folderCache[currentPath] = folderId;
+      parentId = folderId;
+    }
+    return parentId;
+  }
+
+  for (const entry of entries) {
+    try {
+      const lastSlash = entry.path.lastIndexOf("/");
+      if (lastSlash === -1) {
+        if (entry.content !== undefined) {
+          await uploadGoogleDriveFile(entry.path, entry.content, rootId);
+          result.created.files++;
+        } else {
+          await ensureFolder(entry.path);
+        }
+      } else {
+        const parentPath = entry.path.substring(0, lastSlash);
+        const fileName = entry.path.substring(lastSlash + 1);
+        const parentId = await ensureFolder(parentPath);
+        if (entry.content !== undefined) {
+          await uploadGoogleDriveFile(fileName, entry.content, parentId);
+          result.created.files++;
+        }
+      }
+    } catch (err) {
+      result.errors.push(`${entry.path}: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
+  return result;
+}
+
 type DriveFile = {
   id: string;
   name: string;

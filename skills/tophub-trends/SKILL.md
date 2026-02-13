@@ -1,6 +1,6 @@
 ---
 name: tophub-trends
-description: "获取 TopHub 热榜数据，分析热点趋势，提供内容创作选题建议。用户提到热榜、热搜、热点趋势、今天什么火、选题灵感、内容创作时使用。Keywords: trending, hot topics, TopHub, viral, content ideas, what's trending."
+description: "获取 TopHub 热榜数据，分析热点趋势，提供内容创作选题建议。用户提到热榜、热搜、热点趋势、今天什么火、选题灵感、内容创作、今日热点、热门话题时使用。Keywords: trending, hot topics, TopHub, viral, content ideas, what's trending. 关键词：热榜、热搜、热点趋势、今天什么火、选题灵感、今日热点、热门话题。"
 metadata: { "openclaw": { "requires": { "bins": ["python3"] } } }
 ---
 

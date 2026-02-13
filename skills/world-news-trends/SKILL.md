@@ -1,6 +1,6 @@
 ---
 name: world-news-trends
-description: "Fetch and analyze international news trends from BBC, Al Jazeera, CNA, TechCrunch and more via RSS. Use when user asks about world news, international headlines, global trends, what's happening in the world. 关键词：国际新闻、世界新闻、全球热点、国际头条、海外新闻、BBC新闻、科技新闻、亚洲新闻。"
+description: "Fetch and analyze international news trends from BBC, Al Jazeera, CNA, TechCrunch and more via RSS. Use when user asks about world news, international headlines, global trends, what's happening in the world. 关键词：国际新闻、世界新闻、全球热点、国际头条、海外新闻、BBC新闻、科技新闻、亚洲新闻、世界大事、全球新闻。"
 metadata: { "openclaw": { "requires": { "bins": ["python3"] } } }
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: deep-research
-description: Deep research via the Gemini Interactions API. Launch comprehensive research on any topic, with optional RAG grounding from local files. Cost estimation with --dry-run. Adaptive polling, structured output, follow-up research chains. 关键词：深度研究、调研、分析报告、帮我研究一下、深入了解、做个调查。
+description: Deep research via the Gemini Interactions API. Launch comprehensive research on any topic, with optional RAG grounding from local files. Cost estimation with --dry-run. Adaptive polling, structured output, follow-up research chains. 关键词：深度研究、调研、分析报告、帮我研究一下、深入了解、做个调查、深入研究、帮我调研、分析一下。
 license: MIT
 metadata:
   version: "1.2.1"

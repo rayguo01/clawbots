@@ -1,14 +1,14 @@
 import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
 import { emptyPluginConfigSchema } from "openclaw/plugin-sdk";
-import { createShipcastTools } from "./src/tools.js";
+import { createGitHubTools } from "./src/tools.js";
 
 const plugin = {
-  id: "shipcast",
-  name: "Shipcast",
-  description: "Auto-tweet your code updates from GitHub commits",
+  id: "github",
+  name: "GitHub",
+  description: "List repos and get commits from GitHub",
   configSchema: emptyPluginConfigSchema(),
   register(api: OpenClawPluginApi) {
-    for (const tool of createShipcastTools()) {
+    for (const tool of createGitHubTools()) {
       api.registerTool(tool);
     }
   },

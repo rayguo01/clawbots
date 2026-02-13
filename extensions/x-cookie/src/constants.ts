@@ -1,27 +1,20 @@
-import { resolveXToMarkdownChromeProfileDir } from "./paths.js";
-
 export const DEFAULT_BEARER_TOKEN =
   "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA";
+
 export const DEFAULT_USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36";
-export const X_LOGIN_URL = "https://x.com/home";
-export const X_USER_DATA_DIR = resolveXToMarkdownChromeProfileDir();
 
 export const X_COOKIE_NAMES = ["auth_token", "ct0", "gt", "twid"] as const;
 export const X_REQUIRED_COOKIES = ["auth_token", "ct0"] as const;
 
-export const FALLBACK_QUERY_ID = "id8pHQbQi7eZ6P9mA1th1Q";
-export const FALLBACK_FEATURE_SWITCHES = [
-  "profile_label_improvements_pcf_label_in_post_enabled",
-  "responsive_web_profile_redirect_enabled",
-  "rweb_tipjar_consumption_enabled",
-  "verified_phone_label_enabled",
-  "responsive_web_graphql_skip_user_profile_image_extensions_enabled",
-  "responsive_web_graphql_timeline_navigation_enabled",
-];
-export const FALLBACK_FIELD_TOGGLES = ["withPayments", "withAuxiliaryUserLabels"];
-
+// Fallback query IDs (updated from x.com JS bundles)
 export const FALLBACK_TWEET_QUERY_ID = "HJ9lpOL-ZlOk5CkCw0JW6Q";
+export const FALLBACK_TWEET_DETAIL_QUERY_ID = "_8aYOgEDz35BrBcBal1-_w";
+export const FALLBACK_CREATE_TWEET_QUERY_ID = "znCbFB2GCR83bIqAJHFBGw";
+export const FALLBACK_USER_TWEETS_QUERY_ID = "E3opETHurmVJflFsUBVuUQ";
+export const FALLBACK_HOME_TIMELINE_QUERY_ID = "HJFjzBgCs16TqxewQOeLNg";
+export const FALLBACK_SEARCH_QUERY_ID = "gkjsKepM6gl_HmFWoWKfgg";
+
 export const FALLBACK_TWEET_FEATURE_SWITCHES = [
   "creator_subscriptions_tweet_preview_api_enabled",
   "premium_content_api_read_enabled",
@@ -59,6 +52,7 @@ export const FALLBACK_TWEET_FEATURE_SWITCHES = [
   "responsive_web_graphql_timeline_navigation_enabled",
   "responsive_web_enhance_cards_enabled",
 ];
+
 export const FALLBACK_TWEET_FIELD_TOGGLES = [
   "withArticleRichContentState",
   "withArticlePlainText",
@@ -68,7 +62,6 @@ export const FALLBACK_TWEET_FIELD_TOGGLES = [
   "withAuxiliaryUserLabels",
 ];
 
-export const FALLBACK_TWEET_DETAIL_QUERY_ID = "_8aYOgEDz35BrBcBal1-_w";
 export const FALLBACK_TWEET_DETAIL_FEATURE_SWITCHES = [
   "rweb_video_screen_enabled",
   "profile_label_improvements_pcf_label_in_post_enabled",
@@ -102,6 +95,7 @@ export const FALLBACK_TWEET_DETAIL_FEATURE_SWITCHES = [
   "responsive_web_grok_image_annotation_enabled",
   "responsive_web_enhance_cards_enabled",
 ];
+
 export const FALLBACK_TWEET_DETAIL_FEATURE_DEFAULTS: Record<string, boolean> = {
   rweb_video_screen_enabled: false,
   profile_label_improvements_pcf_label_in_post_enabled: true,
@@ -135,6 +129,7 @@ export const FALLBACK_TWEET_DETAIL_FEATURE_DEFAULTS: Record<string, boolean> = {
   responsive_web_grok_image_annotation_enabled: true,
   responsive_web_enhance_cards_enabled: false,
 };
+
 export const FALLBACK_TWEET_DETAIL_FIELD_TOGGLES = [
   "withArticleRichContentState",
   "withArticlePlainText",

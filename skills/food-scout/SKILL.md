@@ -1,6 +1,6 @@
 ---
 name: food-scout
-description: "食探 - 拍照识别食物，AI估算卡路里和营养。支持自然语言查询全球食物营养数据，记录饮食和体重。温暖陪伴不评判。关键词：吃了、拍照、卡路里、午餐、晚餐、体重、营养、减肥。Keywords: food photo, calorie, nutrition, meal log, diet, weight, what I ate."
+description: "食探 - 拍照识别食物，AI估算卡路里和营养。支持自然语言查询全球食物营养数据，记录饮食和体重。温暖陪伴不评判。关键词：吃了、拍照、卡路里、午餐、晚餐、体重、营养、减肥、识别食物、多少卡路里。Keywords: food photo, calorie, nutrition, meal log, diet, weight, what I ate."
 version: 1.0.0
 author: nanobots
 tags: [nutrition, food, diet, health, photo, calories]

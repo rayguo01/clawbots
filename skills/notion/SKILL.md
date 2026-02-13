@@ -1,6 +1,6 @@
 ---
 name: notion
-description: Notion API for creating and managing pages, databases, and blocks. 关键词：Notion页面、笔记、数据库、知识库管理。
+description: Notion API for creating and managing pages, databases, and blocks. 关键词：Notion页面、笔记、数据库、知识库管理、创建笔记、查找笔记、Notion搜索。
 homepage: https://developers.notion.com
 metadata:
   {

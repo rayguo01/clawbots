@@ -1,5 +1,5 @@
 {
-  "id": "shipcast",
+  "id": "x-cookie",
   "configSchema": {
     "type": "object",
     "additionalProperties": false,

@@ -1,6 +1,6 @@
 ---
 name: travel-planner
-description: "Plan complete day trips, walking tours, and multi-stop itineraries with time budgets using Camino AI journey planning and route optimization. 关键词：旅行规划、行程安排、一日游、路线规划、步行游览、自驾游、骑行路线。"
+description: "Plan complete day trips, walking tours, and multi-stop itineraries with time budgets using Camino AI journey planning and route optimization. 关键词：旅行规划、行程安排、一日游、路线规划、步行游览、自驾游、骑行路线、去哪玩、旅行计划。"
 metadata:
   {
     "clawdbot":

@@ -1,6 +1,6 @@
 ---
 name: xiao-fan-ka
-description: "餐厅推荐找店。用户想找餐厅、问附近有什么好吃的、想要餐厅推荐、问去哪吃饭时使用。关键词：餐厅、好吃的、推荐、找店、去哪吃、聚餐、约会吃饭、美食。Keywords: restaurant recommendation, where to eat, good food nearby, dining suggestion, best restaurants."
+description: "餐厅推荐找店。用户想找餐厅、问附近有什么好吃的、想要餐厅推荐、问去哪吃饭时使用。关键词：餐厅、好吃的、推荐、找店、去哪吃、聚餐、约会吃饭、美食、附近美食、推荐餐厅、附近好吃的。Keywords: restaurant recommendation, where to eat, good food nearby, dining suggestion, best restaurants."
 version: 0.3.4
 author: oak lee
 tags: [restaurant, food, recommendation, chinese, 美食, 找餐厅, 口味画像, 大众点评, 小红书]

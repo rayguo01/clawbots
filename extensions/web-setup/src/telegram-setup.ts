@@ -1,4 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
+import fs from "node:fs";
+import path from "node:path";
+import { resolveStateDir } from "openclaw/plugin-sdk";
 import { updateConfig } from "./config-bridge.js";
 import { readJsonBody, sendJson } from "./helpers.js";
 
@@ -33,6 +36,40 @@ export async function handleTelegramVerify(
     }
   } catch {
     sendJson(res, 500, { ok: false, error: "Failed to reach Telegram API" });
+  }
+}
+
+export async function handleTelegramDisconnect(
+  req: IncomingMessage,
+  res: ServerResponse,
+): Promise<void> {
+  if (req.method !== "POST") {
+    res.statusCode = 405;
+    res.end("Method Not Allowed");
+    return;
+  }
+
+  try {
+    await updateConfig((config) => {
+      if (config.channels?.telegram) {
+        delete config.channels.telegram.botToken;
+        delete config.channels.telegram.allowFrom;
+      }
+      return config;
+    });
+
+    // Clean up the update offset file so a new bot doesn't inherit
+    // the old bot's offset (which would cause all messages to be skipped).
+    const offsetFile = path.join(resolveStateDir(), "telegram", "update-offset-default.json");
+    try {
+      fs.unlinkSync(offsetFile);
+    } catch {
+      // File may not exist — that's fine.
+    }
+
+    sendJson(res, 200, { ok: true });
+  } catch (err) {
+    sendJson(res, 500, { ok: false, error: String(err) });
   }
 }
 

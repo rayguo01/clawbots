@@ -40,6 +40,9 @@
         fileCount: 0,
       },
     },
+    xCookiesStatus: { configured: false, source: null, hasMaskedAuthToken: null },
+    adminServicesStatus: {},
+    expandedService: null,
     showOnboarding: false,
     onboardingChannel: null,
     whatsappQR: null,
@@ -138,6 +141,16 @@
     wrench:
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>',
     book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
+    gdrive:
+      '<svg viewBox="0 0 24 24" fill="none"><path d="M8.01 2.76L1.34 14.24h6.67L14.68 2.76H8.01z" fill="#4285F4"/><path d="M14.68 2.76l-6.67 11.48 3.33 5.76 6.67-11.48" fill="#FBBC04"/><path d="M22.66 14.24h-6.67l3.33 5.76h6.67l-3.33-5.76z" fill="#EA4335"/><path d="M8.01 2.76l-3.34 5.76L11.34 20l3.34-5.76" fill="#34A853"/><path d="M14.68 2.76L8.01 14.24h6.67" fill="#188038" opacity=".4"/></svg>',
+    notion:
+      '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L18.21 2.168c-.42-.326-.98-.7-2.055-.607L3.01 2.72c-.467.046-.56.28-.374.466l1.823 1.022zm.793 3.175v13.903c0 .747.373 1.027 1.214.98l14.523-.84c.84-.046.933-.56.933-1.167V6.356c0-.606-.233-.933-.746-.886l-15.177.886c-.56.047-.747.327-.747.933v.094zm14.337.373c.093.42 0 .84-.42.886l-.7.14v10.264c-.607.327-1.167.514-1.634.514-.747 0-.933-.234-1.494-.934l-4.577-7.186v6.952l1.447.327s0 .84-1.167.84l-3.221.187c-.093-.187 0-.653.327-.746l.84-.233V8.966L7.39 8.826c-.094-.42.14-1.026.793-1.073l3.454-.233 4.764 7.279V8.5l-1.214-.14c-.093-.513.28-.886.747-.933l3.455-.187v.516z"/></svg>',
+    dropbox:
+      '<svg viewBox="0 0 24 24" fill="#0061FF"><path d="M12 6.8L6.3 10.5 12 14.2l-5.7 3.7L.6 14.2 6.3 10.5.6 6.8 6.3 3.1 12 6.8zm0 0l5.7-3.7 5.7 3.7-5.7 3.7L12 6.8zm5.7 7.4L12 14.2l5.7-3.7 5.7 3.7-5.7 3.7zm-5.7.9l5.7 3.7-5.7 3.7V15.1zm0 0L6.3 18.8l-5.7-3.7L6.3 11.4 12 15.1z"/></svg>',
+    database:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>',
+    folder:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>',
     telegram:
       '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 0 0-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>',
     whatsapp:
@@ -153,6 +166,60 @@
     { id: "travel", name: "出行活动" },
     { id: "content", name: "内容创作" },
     { id: "marketing", name: "营销增长" },
+  ];
+
+  // ===== 5.5. SERVICES_META =====
+  var SERVICES_META = [
+    // OAuth services
+    { id: "google", name: "Google", desc: "日历、邮件、网盘", type: "oauth", icon: "calendar" },
+    { id: "github", name: "GitHub", desc: "仓库、提交记录", type: "oauth", icon: "globe" },
+    { id: "todoist", name: "Todoist", desc: "任务管理", type: "oauth", icon: "checklist" },
+    { id: "notion", name: "Notion", desc: "笔记、数据库", type: "oauth", icon: "fileText" },
+    { id: "spotify", name: "Spotify", desc: "音乐播放控制", type: "oauth", icon: "mic" },
+    { id: "microsoft365", name: "Microsoft 365", desc: "邮件、日历", type: "oauth", icon: "mail" },
+    { id: "fitbit", name: "Fitbit", desc: "健康数据", type: "oauth", icon: "activity" },
+    { id: "dropbox", name: "Dropbox", desc: "文件存储", type: "oauth", icon: "fileText" },
+    // User credentials
+    {
+      id: "x-cookies",
+      name: "X (Twitter)",
+      desc: "发推、浏览、搜索推文",
+      type: "credentials",
+      icon: "shield",
+    },
+    // Admin API keys
+    {
+      id: "google-places",
+      name: "Google Places",
+      desc: "全球地点搜索",
+      type: "admin",
+      envVar: "NANOBOTS_GOOGLE_PLACES_API_KEY",
+      icon: "wrench",
+    },
+    {
+      id: "amap",
+      name: "高德地图",
+      desc: "中国地点搜索",
+      type: "admin",
+      envVar: "NANOBOTS_AMAP_API_KEY",
+      icon: "mapPin",
+    },
+    {
+      id: "openweathermap",
+      name: "OpenWeatherMap",
+      desc: "天气数据",
+      type: "admin",
+      envVar: "NANOBOTS_OPENWEATHERMAP_API_KEY",
+      icon: "sun",
+    },
+    {
+      id: "amadeus",
+      name: "Amadeus",
+      desc: "航班酒店搜索",
+      type: "admin",
+      envVar: "NANOBOTS_AMADEUS_API_KEY",
+      icon: "plane",
+    },
   ];
 
   // ===== 6. SKILLS_META =====
@@ -177,7 +244,19 @@
         "每周菜单自动规划与购物清单",
         "营养成分分析与热量估算",
       ],
-      triggers: ["今天吃什么", "菜谱推荐", "冰箱里有...", "教我做菜"],
+      triggers: [
+        "吃什么",
+        "食谱",
+        "做饭",
+        "菜谱",
+        "一周食谱",
+        "晚饭做什么",
+        "买菜清单",
+        "想做饭",
+        "菜谱推荐",
+        "冰箱里有",
+        "教我做菜",
+      ],
     },
     {
       id: "xiao-fan-ka",
@@ -199,7 +278,18 @@
         "餐厅详情与用户评价展示",
         "智能避开踩雷餐厅",
       ],
-      triggers: ["附近美食", "推荐餐厅", "今天去哪吃", "附近好吃的"],
+      triggers: [
+        "餐厅",
+        "好吃的",
+        "找店",
+        "去哪吃",
+        "聚餐",
+        "约会吃饭",
+        "美食",
+        "附近美食",
+        "推荐餐厅",
+        "附近好吃的",
+      ],
     },
     {
       id: "food-scout",
@@ -221,7 +311,7 @@
         "周期性饮食报告分析",
         "膳食均衡度评估建议",
       ],
-      triggers: ["识别食物", "多少卡路里", "今天吃了什么"],
+      triggers: ["拍照", "卡路里", "体重", "营养", "减肥", "识别食物", "多少卡路里"],
     },
     {
       id: "ezbookkeeping",
@@ -247,7 +337,7 @@
         "月度/年度消费报告",
         "预算超支智能提醒",
       ],
-      triggers: ["记一笔", "本月开支", "花了多少"],
+      triggers: ["花了", "收入", "工资", "开销", "账单", "记一笔", "本月开支"],
     },
     {
       id: "weather",
@@ -269,7 +359,7 @@
         "恶劣天气预警提醒",
         "多城市天气对比查询",
       ],
-      triggers: ["天气", "穿什么", "今天冷吗", "会下雨吗"],
+      triggers: ["天气", "天气预报", "温度", "气温", "穿什么", "今天冷吗", "会下雨吗"],
     },
     {
       id: "voice-message",
@@ -291,7 +381,7 @@
         "高准确率语音识别",
         "支持多种方言",
       ],
-      triggers: ["语音转文字", "帮我听语音"],
+      triggers: ["语音转文字", "音频转写", "录音识别", "帮我听语音"],
     },
     {
       id: "oura-ring",
@@ -317,7 +407,7 @@
         "身体准备度评分",
         "趋势分析与建议",
       ],
-      triggers: ["睡眠报告", "昨晚睡得怎么样", "今日活动"],
+      triggers: ["睡眠质量", "心率", "血氧", "运动记录", "睡眠报告", "昨晚睡得怎么样", "今日活动"],
     },
     {
       id: "fitbit-insights",
@@ -333,7 +423,7 @@
       oauthProvider: "fitbit",
       apiKeyField: null,
       features: ["步数与运动记录", "心率监测", "睡眠分析", "健康趋势图", "运动目标追踪"],
-      triggers: ["今天走了多少步", "运动记录", "心率"],
+      triggers: ["运动数据", "步数", "睡眠", "心率", "健身", "今天走了多少步", "运动记录"],
     },
     {
       id: "google-calendar",
@@ -365,7 +455,7 @@
       oauthProvider: "microsoft365",
       apiKeyField: null,
       features: ["收发邮件", "日历管理", "通讯录查询", "邮件搜索", "会议安排"],
-      triggers: ["查看邮件", "发邮件给", "日程安排"],
+      triggers: ["Outlook邮件", "微软日历", "发邮件", "会议安排", "查看邮件", "日程安排"],
     },
     {
       id: "gmail",
@@ -413,7 +503,15 @@
       oauthProvider: "notion",
       apiKeyField: null,
       features: ["创建页面", "查询数据库", "更新内容", "搜索笔记", "模板使用"],
-      triggers: ["创建笔记", "查找笔记", "Notion 搜索"],
+      triggers: [
+        "Notion页面",
+        "笔记",
+        "数据库",
+        "知识库管理",
+        "创建笔记",
+        "查找笔记",
+        "Notion搜索",
+      ],
     },
     {
       id: "contract-agent",
@@ -429,7 +527,7 @@
       oauthProvider: null,
       apiKeyField: null,
       features: ["合同条款分析", "风险点识别", "关键条款提取", "修改建议", "合规检查"],
-      triggers: ["审核合同", "合同分析", "检查条款"],
+      triggers: ["合同", "协议", "审查", "风险分析", "条款", "签约", "保密协议"],
     },
     {
       id: "ai-news-collector",
@@ -445,7 +543,7 @@
       oauthProvider: null,
       apiKeyField: null,
       features: ["AI 领域新闻聚合", "每日精选推送", "技术趋势分析", "重要发布追踪", "多来源整合"],
-      triggers: ["AI 新闻", "今天有什么新技术", "AI 动态"],
+      triggers: ["AI新闻", "AI动态", "今天有什么新技术"],
     },
     {
       id: "tophub-trends",
@@ -461,7 +559,7 @@
       oauthProvider: null,
       apiKeyField: null,
       features: ["全网热点聚合", "多平台覆盖", "实时更新", "话题趋势分析", "热度排名"],
-      triggers: ["今日热点", "热搜", "热门话题"],
+      triggers: ["热榜", "热搜", "热点趋势", "今天什么火", "选题灵感", "今日热点", "热门话题"],
     },
     {
       id: "world-news-trends",
@@ -477,7 +575,18 @@
       oauthProvider: null,
       apiKeyField: null,
       features: ["国际新闻聚合", "多语言来源", "地区分类", "重大事件追踪", "新闻摘要"],
-      triggers: ["国际新闻", "世界大事", "全球新闻"],
+      triggers: [
+        "国际新闻",
+        "世界新闻",
+        "全球热点",
+        "国际头条",
+        "海外新闻",
+        "BBC新闻",
+        "科技新闻",
+        "亚洲新闻",
+        "世界大事",
+        "全球新闻",
+      ],
     },
     {
       id: "deep-research",
@@ -493,7 +602,17 @@
       oauthProvider: null,
       apiKeyField: null,
       features: ["深度话题研究", "多角度分析", "引用来源标注", "结构化报告", "跟踪研究"],
-      triggers: ["深入研究", "帮我调研", "分析一下"],
+      triggers: [
+        "深度研究",
+        "调研",
+        "分析报告",
+        "帮我研究一下",
+        "深入了解",
+        "做个调查",
+        "深入研究",
+        "帮我调研",
+        "分析一下",
+      ],
     },
     {
       id: "travel-planner",
@@ -513,7 +632,17 @@
         hint: "从 Camino API 获取",
       },
       features: ["行程自动规划", "机票酒店搜索", "景点推荐", "预算估算", "签证信息"],
-      triggers: ["规划旅行", "去哪玩", "旅行计划"],
+      triggers: [
+        "旅行规划",
+        "行程安排",
+        "一日游",
+        "路线规划",
+        "步行游览",
+        "自驾游",
+        "骑行路线",
+        "去哪玩",
+        "旅行计划",
+      ],
     },
     {
       id: "luma",
@@ -529,7 +658,19 @@
       oauthProvider: null,
       apiKeyField: null,
       features: ["附近活动发现", "活动详情查看", "类型筛选", "时间筛选", "活动提醒"],
-      triggers: ["附近活动", "周末活动", "有什么聚会"],
+      triggers: [
+        "活动",
+        "聚会",
+        "会议",
+        "技术活动",
+        "创业活动",
+        "线下活动",
+        "什么活动",
+        "哪些活动",
+        "附近活动",
+        "周末活动",
+        "有什么聚会",
+      ],
     },
     {
       id: "nano-banana-pro",
@@ -549,7 +690,7 @@
         hint: "从 Google AI Studio 获取",
       },
       features: ["文字生成图片", "多种风格选择", "高清输出", "图片编辑", "批量生成"],
-      triggers: ["生成图片", "画一张", "帮我做图"],
+      triggers: ["生成图片", "画图", "修图", "AI绘画", "图片编辑", "画一张", "帮我做图"],
     },
     {
       id: "baoyu-article-illustrator",
@@ -565,7 +706,7 @@
       oauthProvider: null,
       apiKeyField: null,
       features: ["根据文章内容生成配图", "多种风格", "尺寸自适应", "批量生成", "风格一致性"],
-      triggers: ["文章配图", "生成插图"],
+      triggers: ["文章配图", "插图生成"],
     },
     {
       id: "baoyu-infographic",
@@ -581,7 +722,7 @@
       oauthProvider: null,
       apiKeyField: null,
       features: ["数据可视化", "流程图生成", "对比图", "统计图表", "概念图解"],
-      triggers: ["做个信息图", "数据可视化"],
+      triggers: ["信息图", "数据可视化", "做个信息图"],
     },
     {
       id: "baoyu-xhs-images",
@@ -597,7 +738,7 @@
       oauthProvider: null,
       apiKeyField: null,
       features: ["小红书风格适配", "多种排版模板", "文字叠加", "滤镜效果", "批量生成"],
-      triggers: ["小红书配图", "做小红书图"],
+      triggers: ["小红书配图", "做小红书图", "小红书图片", "小红书种草"],
     },
     {
       id: "baoyu-cover-image",
@@ -613,7 +754,7 @@
       oauthProvider: null,
       apiKeyField: null,
       features: ["封面图设计", "多平台尺寸", "标题排版", "品牌色适配", "模板选择"],
-      triggers: ["生成封面", "做个封面图"],
+      triggers: ["封面图", "文章封面", "生成封面", "做个封面图"],
     },
     {
       id: "humanizer",
@@ -629,7 +770,7 @@
       oauthProvider: null,
       apiKeyField: null,
       features: ["AI 文案人性化", "口语化改写", "风格调整", "多语言支持", "保留原意"],
-      triggers: ["润色文案", "改写一下", "更自然一点"],
+      triggers: ["去AI味", "润色文案", "润色文章", "改写文章", "改写一下", "更自然一点", "AI痕迹"],
     },
     {
       id: "baoyu-url-to-markdown",
@@ -645,23 +786,33 @@
       oauthProvider: null,
       apiKeyField: null,
       features: ["网页内容提取", "Markdown 转换", "图片保留", "去除广告", "批量处理"],
-      triggers: ["解析网页", "读取链接"],
+      triggers: [
+        "网页保存",
+        "网页转markdown",
+        "解析网页",
+        "提取网页内容",
+        "读取网页",
+        "抓取网页",
+        "打开链接",
+        "读取链接",
+      ],
     },
     {
-      id: "baoyu-danger-x-to-markdown",
-      name: "X 解析",
-      desc: "推文解析工具",
+      id: "x-assistant",
+      name: "X 助手",
+      desc: "推特管家",
       fullDesc:
-        "将推特内容转为可读文本。提取推文内容、整合推文线程、保留图片链接，转换为 Markdown 格式，支持批量处理。",
-      subtitle: "推文解析工具 · 内容创作",
+        "你的推特管家。发推文、浏览时间线、查看用户推文、搜索推文，一句话搞定。支持发推文串、查看推文详情和互动数据。需要配置 X Cookie 才能使用。",
+      subtitle: "推特管家 · 社交媒体",
       categories: ["content"],
-      icon: "globe",
-      iconClass: "icon-globe",
-      type: "instant",
+      icon: "megaphone",
+      iconClass: "icon-megaphone",
+      type: "service-dep",
       oauthProvider: null,
+      requiredServices: ["x-cookies"],
       apiKeyField: null,
-      features: ["推文内容提取", "线程整合", "图片保留", "Markdown 格式化", "批量处理"],
-      triggers: ["解析推文", "读取推特"],
+      features: ["发推文 / 推文串", "浏览时间线", "查看用户推文", "搜索推文", "推文详情"],
+      triggers: ["发推", "推文", "推特", "tweet", "timeline", "时间线", "搜索推文"],
     },
     {
       id: "copy-editing",
@@ -677,7 +828,7 @@
       oauthProvider: null,
       apiKeyField: null,
       features: ["文案优化", "语法校正", "风格统一", "可读性提升", "SEO 优化"],
-      triggers: ["优化文案", "编辑文案"],
+      triggers: ["优化文案", "编辑文案", "文案校对", "修改文案"],
     },
     {
       id: "copywriting",
@@ -693,7 +844,7 @@
       oauthProvider: null,
       apiKeyField: null,
       features: ["广告文案", "产品描述", "标题创作", "社媒文案", "A/B 测试文案"],
-      triggers: ["写文案", "广告词"],
+      triggers: ["写文案", "广告词", "营销文案", "文案创作"],
     },
     {
       id: "marketing-psychology",
@@ -709,7 +860,7 @@
       oauthProvider: null,
       apiKeyField: null,
       features: ["心理触发点分析", "说服力优化", "用户心理建模", "转化心理学", "案例分析"],
-      triggers: ["营销心理", "说服力优化"],
+      triggers: ["营销心理", "说服力优化", "消费者行为", "心理学营销"],
     },
     {
       id: "marketing-ideas",
@@ -725,7 +876,7 @@
       oauthProvider: null,
       apiKeyField: null,
       features: ["创意脑暴", "活动策划", "渠道建议", "竞品分析", "趋势洞察"],
-      triggers: ["营销创意", "活动点子"],
+      triggers: ["营销创意", "活动点子", "增长策略", "推广方案"],
     },
     {
       id: "social-content",
@@ -741,7 +892,7 @@
       oauthProvider: null,
       apiKeyField: null,
       features: ["多平台适配", "内容日历", "话题策划", "互动策略", "数据分析"],
-      triggers: ["社媒内容", "发什么帖子"],
+      triggers: ["社媒内容", "发什么帖子", "社交媒体", "内容日历"],
     },
     {
       id: "pricing-strategy",
@@ -757,7 +908,7 @@
       oauthProvider: null,
       apiKeyField: null,
       features: ["定价模型分析", "竞品价格对比", "价值定价", "促销策略", "价格弹性"],
-      triggers: ["定价建议", "如何定价"],
+      triggers: ["定价建议", "如何定价", "定价策略", "付费方案"],
     },
     {
       id: "page-cro",
@@ -773,7 +924,7 @@
       oauthProvider: null,
       apiKeyField: null,
       features: ["页面分析", "转化漏斗", "A/B 测试建议", "CTA 优化", "用户体验改进"],
-      triggers: ["优化页面", "提高转化"],
+      triggers: ["优化页面", "提高转化", "转化率优化", "CRO"],
     },
     {
       id: "launch-strategy",
@@ -789,7 +940,7 @@
       oauthProvider: null,
       apiKeyField: null,
       features: ["发布计划制定", "渠道策略", "预热方案", "发布时间线", "PR 策略"],
-      triggers: ["发布计划", "上线策略"],
+      triggers: ["发布计划", "上线策略", "产品发布", "Go-to-Market"],
     },
     {
       id: "onboarding-cro",
@@ -805,7 +956,7 @@
       oauthProvider: null,
       apiKeyField: null,
       features: ["引导流程优化", "激活率提升", "留存分析", "首次体验设计", "里程碑设置"],
-      triggers: ["优化引导", "提升激活"],
+      triggers: ["优化引导", "提升激活", "用户引导", "新手体验"],
     },
     {
       id: "email-sequence",
@@ -821,7 +972,7 @@
       oauthProvider: null,
       apiKeyField: null,
       features: ["邮件序列设计", "触发条件设置", "模板创作", "转化追踪", "A/B 测试"],
-      triggers: ["邮件序列", "设计邮件"],
+      triggers: ["邮件序列", "设计邮件", "邮件营销", "自动邮件"],
     },
     {
       id: "shipcast",
@@ -833,11 +984,12 @@
       categories: ["marketing"],
       icon: "megaphone",
       iconClass: "icon-megaphone",
-      type: "oauth",
-      oauthProvider: "github",
+      type: "service-dep",
+      oauthProvider: null,
+      requiredServices: ["github", "x-cookies"],
       apiKeyField: null,
       features: ["代码更新摘要", "推文自动生成", "技术内容转化", "多平台发布", "定期汇总"],
-      triggers: ["生成更新推文", "发布更新"],
+      triggers: ["生成更新推文", "发布更新", "代码更新推文", "Build in Public"],
     },
   ];
 
@@ -848,18 +1000,37 @@
     });
   }
 
+  function getServiceName(svcId) {
+    for (var i = 0; i < SERVICES_META.length; i++) {
+      if (SERVICES_META[i].id === svcId) return SERVICES_META[i].name;
+    }
+    return svcId;
+  }
+
   function getSkillStatus(skill) {
     var skillState = state.skills[skill.id] || {};
     var configured = false;
-    var enabled = skillState.enabled || false;
+    var enabled = skillState.enabled !== false;
+    var configHint = "";
 
     if (skill.type === "instant") {
       configured = true;
     } else if (skill.type === "api-key") {
       configured = skillState.configured || false;
+      if (!configured) configHint = "需要配置 API Key";
     } else if (skill.type === "oauth") {
       var provider = skill.oauthProvider;
       configured = (state.oauthStatus[provider] && state.oauthStatus[provider].connected) || false;
+      if (!configured) configHint = "需要连接 " + getServiceName(provider);
+    } else if (skill.type === "service-dep") {
+      var missing = (skill.requiredServices || []).filter(function (svc) {
+        if (svc === "x-cookies") return !(state.xCookiesStatus && state.xCookiesStatus.configured);
+        return !(state.oauthStatus[svc] && state.oauthStatus[svc].connected);
+      });
+      configured = missing.length === 0;
+      if (!configured) {
+        configHint = "需要配置: " + missing.map(getServiceName).join("、");
+      }
     }
 
     var statusClass = "disabled";
@@ -877,6 +1048,7 @@
       enabled: enabled,
       statusClass: statusClass,
       statusText: statusText,
+      configHint: configHint,
     };
   }
 
@@ -922,6 +1094,11 @@
       '" data-tab="skills">' +
       ICONS.wrench +
       "技能库</button>" +
+      '<button class="nav-tab ' +
+      (state.currentTab === "services" ? "active" : "") +
+      '" data-tab="services">' +
+      ICONS.globe +
+      "服务</button>" +
       '<button class="nav-tab ' +
       (state.currentTab === "knowledge" ? "active" : "") +
       '" data-tab="knowledge">' +
@@ -969,14 +1146,15 @@
       '<div class="skill-desc">' +
       skill.desc +
       "</div>" +
+      (status.configHint ? '<div class="skill-config-hint">' + status.configHint + "</div>" : "") +
       '<div class="skill-card-bottom">' +
       '<div class="skill-keywords">' +
       keywordTags +
       "</div>" +
       '<label class="toggle">' +
       '<input type="checkbox" ' +
-      (status.enabled ? "checked" : "") +
-      (status.configured ? "" : " disabled") +
+      (status.enabled && status.configured ? "checked" : "") +
+      (!status.configured && skill.type === "api-key" ? " disabled" : "") +
       ">" +
       '<span class="toggle-track"></span>' +
       "</label>" +
@@ -1063,6 +1241,12 @@
       '<div class="expanded-desc">' +
       skill.fullDesc +
       "</div>" +
+      (status.configHint
+        ? '<div class="skill-config-hint expanded-config-hint">' +
+          status.configHint +
+          (skill.type !== "api-key" ? ' — <a href="#services">前往服务页配置</a>' : "") +
+          "</div>"
+        : "") +
       '<div class="expanded-features">' +
       "<h4>核心功能</h4>" +
       '<ul class="feature-list">' +
@@ -1085,8 +1269,8 @@
       "</div>" +
       '<label class="toggle-large">' +
       '<input type="checkbox" ' +
-      (status.enabled ? "checked" : "") +
-      (status.configured ? "" : " disabled") +
+      (status.enabled && status.configured ? "checked" : "") +
+      (!status.configured && skill.type === "api-key" ? " disabled" : "") +
       ">" +
       '<span class="toggle-track"></span>' +
       "</label>" +
@@ -1137,6 +1321,172 @@
       "</div>" +
       '<div class="skills-grid">' +
       skillCardsHtml +
+      "</div>" +
+      "</main>"
+    );
+  }
+
+  // ===== 9.5. RENDER SERVICES PAGE =====
+  function renderServicesPage() {
+    var oauthCards = SERVICES_META.filter(function (s) {
+      return s.type === "oauth";
+    })
+      .map(function (service) {
+        var oauthInfo = state.oauthStatus[service.id] || {};
+        var connected = oauthInfo.connected || false;
+        var configured = oauthInfo.configured !== false;
+        var statusClass = connected ? "enabled" : "needs-config";
+        var statusText = connected ? "已连接" : "未连接";
+        var buttonHtml = "";
+        if (connected) {
+          buttonHtml =
+            '<button class="service-disconnect-btn" data-provider="' +
+            service.id +
+            '">断开</button>';
+        } else if (configured) {
+          buttonHtml =
+            '<button class="service-connect-btn" data-provider="' + service.id + '">连接</button>';
+        } else {
+          statusText = "未配置";
+          buttonHtml = '<span class="service-hint">需管理员配置 OAuth</span>';
+        }
+        return (
+          '<div class="service-card">' +
+          '<div class="service-card-icon ' +
+          ("icon-" + service.icon) +
+          '">' +
+          (ICONS[service.icon] || "") +
+          "</div>" +
+          '<div class="service-card-info">' +
+          '<div class="service-card-name">' +
+          service.name +
+          "</div>" +
+          '<div class="service-card-desc">' +
+          service.desc +
+          "</div>" +
+          "</div>" +
+          '<div class="service-card-right">' +
+          '<span class="status-badge ' +
+          statusClass +
+          '"><span class="status-badge-dot"></span>' +
+          statusText +
+          "</span>" +
+          buttonHtml +
+          "</div>" +
+          "</div>"
+        );
+      })
+      .join("");
+
+    // X Cookie credentials card
+    var xStatus = state.xCookiesStatus || {};
+    var xStatusClass = xStatus.configured ? "enabled" : "needs-config";
+    var xStatusText = xStatus.configured ? "已配置" : "未配置";
+    var credentialsCards =
+      '<div class="service-card service-card-expandable" data-service="x-cookies">' +
+      '<div class="service-card-icon icon-shield">' +
+      (ICONS.shield || "") +
+      "</div>" +
+      '<div class="service-card-info">' +
+      '<div class="service-card-name">X Cookie</div>' +
+      '<div class="service-card-desc">发推、浏览、搜索推文</div>' +
+      "</div>" +
+      '<div class="service-card-right">' +
+      '<span class="status-badge ' +
+      xStatusClass +
+      '"><span class="status-badge-dot"></span>' +
+      xStatusText +
+      "</span>" +
+      '<button class="service-expand-btn">' +
+      (state.expandedService === "x-cookies" ? "收起" : "配置") +
+      "</button>" +
+      "</div>" +
+      "</div>";
+
+    if (state.expandedService === "x-cookies") {
+      credentialsCards +=
+        '<div class="service-expand-panel">' +
+        '<div class="x-cookies-guide">' +
+        "<p><strong>如何获取 Cookie：</strong></p>" +
+        '<ol class="x-cookies-steps">' +
+        '<li>在 Chrome 浏览器中打开 <a href="https://x.com" target="_blank" rel="noopener">x.com</a> 并登录你的账号</li>' +
+        "<li>按 <kbd>F12</kbd> 打开开发者工具（或右键 → 检查）</li>" +
+        "<li>切换到顶部的 <strong>Application</strong>（应用）标签页</li>" +
+        "<li>在左侧栏找到 <strong>Cookies</strong> → <strong>https://x.com</strong></li>" +
+        "<li>在 Cookie 列表中找到 <code>auth_token</code>，双击复制它的值</li>" +
+        "<li>同样找到 <code>ct0</code>，双击复制它的值</li>" +
+        "</ol>" +
+        "</div>" +
+        '<div class="x-cookies-form">' +
+        '<label class="api-key-label">auth_token</label>' +
+        '<input type="text" class="x-cookies-input" data-field="auth_token" placeholder="粘贴 auth_token 的值">' +
+        '<label class="api-key-label" style="margin-top:10px">ct0</label>' +
+        '<input type="text" class="x-cookies-input" data-field="ct0" placeholder="粘贴 ct0 的值">' +
+        '<p class="api-key-hint">Cookie 会过期，届时需要重新获取并填入</p>' +
+        '<button class="x-cookies-save-btn">保存 Cookie</button>' +
+        "</div>" +
+        "</div>";
+    }
+
+    var adminCards = SERVICES_META.filter(function (s) {
+      return s.type === "admin";
+    })
+      .map(function (service) {
+        var adminInfo = state.adminServicesStatus[service.id] || {};
+        var adminConfigured = adminInfo.configured || false;
+        var adminStatusClass = adminConfigured ? "enabled" : "disabled";
+        var adminStatusText = adminConfigured ? "已配置" : "未配置";
+        return (
+          '<div class="service-card">' +
+          '<div class="service-card-icon ' +
+          ("icon-" + service.icon) +
+          '">' +
+          (ICONS[service.icon] || ICONS.wrench || "") +
+          "</div>" +
+          '<div class="service-card-info">' +
+          '<div class="service-card-name">' +
+          service.name +
+          "</div>" +
+          '<div class="service-card-desc">' +
+          service.desc +
+          "</div>" +
+          "</div>" +
+          '<div class="service-card-right">' +
+          '<span class="status-badge ' +
+          adminStatusClass +
+          '"><span class="status-badge-dot"></span>' +
+          adminStatusText +
+          "</span>" +
+          "</div>" +
+          "</div>"
+        );
+      })
+      .join("");
+
+    return (
+      '<main class="main">' +
+      '<div class="page-header">' +
+      "<h1>服务连接</h1>" +
+      "<p>连接第三方服务，为你的 AI 助手解锁更多能力</p>" +
+      "</div>" +
+      '<div class="services-section">' +
+      '<h3 class="services-section-title">账号授权</h3>' +
+      '<div class="services-list">' +
+      oauthCards +
+      "</div>" +
+      "</div>" +
+      '<div class="services-section">' +
+      '<h3 class="services-section-title">凭证配置</h3>' +
+      '<div class="services-list">' +
+      credentialsCards +
+      "</div>" +
+      "</div>" +
+      '<div class="services-section">' +
+      '<h3 class="services-section-title">系统服务</h3>' +
+      '<p class="services-section-hint">以下服务由管理员通过环境变量配置</p>' +
+      '<div class="services-list">' +
+      adminCards +
+      "</div>" +
       "</div>" +
       "</main>"
     );
@@ -1245,52 +1595,78 @@
   }
 
   // ===== 11. RENDER KNOWLEDGE PAGE =====
-  function renderKnowledgeCard(source) {
-    var sourceData = state.knowledge[source];
-    var icons = { googleDrive: ICONS.globe, notion: ICONS.fileText, dropbox: ICONS.globe };
-    var titles = { googleDrive: "Google Drive", notion: "Notion", dropbox: "Dropbox" };
-    var icon = icons[source];
-    var title = titles[source];
+  var KNOWLEDGE_SOURCES = [
+    {
+      id: "googleDrive",
+      name: "Google Drive",
+      icon: "gdrive",
+      desc: "同步 Google Docs、Sheets 等云端文件",
+      itemLabel: "文件夹",
+    },
+    {
+      id: "notion",
+      name: "Notion",
+      icon: "notion",
+      desc: "同步 Notion 页面和数据库内容",
+      itemLabel: "数据库",
+    },
+    {
+      id: "dropbox",
+      name: "Dropbox",
+      icon: "dropbox",
+      desc: "同步 Dropbox 云存储中的文件",
+      itemLabel: "文件夹",
+    },
+  ];
 
-    var statusHtml = sourceData.connected
-      ? '<div class="knowledge-status knowledge-status-connected">' +
-        '<span class="status-dot"></span>已连接' +
-        (sourceData.lastSynced
-          ? '<span class="knowledge-sync-time">最后同步: ' +
-            new Date(sourceData.lastSynced).toLocaleString() +
-            "</span>"
-          : "") +
-        "</div>"
-      : '<div class="knowledge-status knowledge-status-disconnected">' +
-        '<span class="status-dot"></span>未连接' +
-        "</div>";
+  function renderKnowledgeCard(sourceMeta) {
+    var sourceData = state.knowledge[sourceMeta.id];
+    var connected = sourceData.connected;
+    var statusClass = connected ? "enabled" : "needs-config";
+    var statusText = connected ? "已连接" : "未连接";
 
-    var actionHtml = sourceData.connected
-      ? '<button class="knowledge-sync-btn" data-source="' +
-        source +
+    var buttonHtml = "";
+    if (connected) {
+      buttonHtml =
+        '<button class="knowledge-sync-btn" data-source="' +
+        sourceMeta.id +
         '">同步</button>' +
         '<button class="knowledge-disconnect-btn" data-source="' +
-        source +
-        '">断开</button>'
-      : '<button class="knowledge-connect-btn" data-source="' + source + '">连接</button>';
+        sourceMeta.id +
+        '">断开</button>';
+    } else {
+      buttonHtml =
+        '<button class="knowledge-connect-btn" data-source="' + sourceMeta.id + '">连接</button>';
+    }
+
+    var syncInfo = "";
+    if (connected && sourceData.lastSynced) {
+      syncInfo =
+        '<div class="knowledge-sync-info">最后同步: ' +
+        new Date(sourceData.lastSynced).toLocaleString() +
+        "</div>";
+    }
 
     var selectionHtml = "";
-    if (sourceData.connected) {
-      var items = source === "notion" ? sourceData.databases : sourceData.folders;
+    if (connected) {
+      var items = sourceMeta.id === "notion" ? sourceData.databases : sourceData.folders;
       var selectedItems =
-        source === "notion" ? sourceData.selectedDatabases : sourceData.selectedFolders;
+        sourceMeta.id === "notion" ? sourceData.selectedDatabases : sourceData.selectedFolders;
       if (items && items.length > 0) {
         var checkboxesHtml = items
           .map(function (item) {
             var checked = selectedItems.indexOf(item.id) !== -1 ? "checked" : "";
             return (
-              '<label class="knowledge-checkbox">' +
+              '<label class="knowledge-folder-item">' +
               '<input type="checkbox" value="' +
               escapeHtml(item.id) +
               '" ' +
               checked +
               ">" +
-              "<span>" +
+              '<span class="knowledge-folder-icon">' +
+              ICONS.folder +
+              "</span>" +
+              '<span class="knowledge-folder-name">' +
               escapeHtml(item.name) +
               "</span>" +
               "</label>"
@@ -1298,45 +1674,71 @@
           })
           .join("");
         selectionHtml =
-          '<div class="knowledge-selection">' +
-          "<h4>选择要同步的" +
-          (source === "notion" ? "数据库" : "文件夹") +
-          "</h4>" +
+          '<div class="knowledge-body">' +
+          '<div class="knowledge-body-header">' +
+          '<span class="knowledge-body-icon">' +
+          ICONS.database +
+          "</span>" +
+          "<span>选择要同步的" +
+          sourceMeta.itemLabel +
+          "</span>" +
+          "</div>" +
+          '<div class="knowledge-folder-list">' +
           checkboxesHtml +
+          "</div>" +
           "</div>";
       }
     }
 
     return (
-      '<div class="knowledge-card">' +
+      '<div class="knowledge-card' +
+      (connected ? " knowledge-card-connected" : "") +
+      '">' +
       '<div class="knowledge-card-header">' +
-      '<div class="knowledge-icon">' +
-      icon +
+      '<div class="knowledge-card-icon icon-' +
+      sourceMeta.icon +
+      '">' +
+      (ICONS[sourceMeta.icon] || "") +
       "</div>" +
-      '<div class="knowledge-info">' +
-      '<div class="knowledge-title">' +
-      title +
+      '<div class="knowledge-card-info">' +
+      '<div class="knowledge-card-name">' +
+      sourceMeta.name +
       "</div>" +
-      statusHtml +
+      '<div class="knowledge-card-desc">' +
+      sourceMeta.desc +
       "</div>" +
-      actionHtml +
       "</div>" +
+      '<div class="knowledge-card-right">' +
+      '<span class="status-badge ' +
+      statusClass +
+      '"><span class="status-badge-dot"></span>' +
+      statusText +
+      "</span>" +
+      buttonHtml +
+      "</div>" +
+      "</div>" +
+      syncInfo +
       selectionHtml +
       "</div>"
     );
   }
 
   function renderKnowledgePage() {
+    var cards = KNOWLEDGE_SOURCES.map(function (source) {
+      return renderKnowledgeCard(source);
+    }).join("");
+
     return (
       '<main class="main">' +
       '<div class="page-header">' +
       "<h1>知识库</h1>" +
       "<p>连接你的云端文档，让 AI 助手学习你的知识</p>" +
       "</div>" +
-      '<div class="knowledge-grid">' +
-      renderKnowledgeCard("googleDrive") +
-      renderKnowledgeCard("notion") +
-      renderKnowledgeCard("dropbox") +
+      '<div class="knowledge-section">' +
+      '<h3 class="knowledge-section-title">云端文档</h3>' +
+      '<div class="knowledge-list">' +
+      cards +
+      "</div>" +
       "</div>" +
       "</main>"
     );
@@ -1388,6 +1790,8 @@
     var html = renderNav();
     if (state.currentTab === "skills") {
       html += renderSkillsPage();
+    } else if (state.currentTab === "services") {
+      html += renderServicesPage();
     } else if (state.currentTab === "im") {
       html += renderIMPage();
     } else if (state.currentTab === "knowledge") {
@@ -1404,6 +1808,8 @@
     bindNavEvents();
     if (state.currentTab === "skills") {
       bindSkillsEvents();
+    } else if (state.currentTab === "services") {
+      bindServicesEvents();
     } else if (state.currentTab === "im") {
       bindIMEvents();
     } else if (state.currentTab === "knowledge") {
@@ -1436,7 +1842,8 @@
 
     var skillCards = document.querySelectorAll(".skill-card:not(.expanded)");
     skillCards.forEach(function (card) {
-      card.addEventListener("click", function () {
+      card.addEventListener("click", function (e) {
+        if (e.target.closest(".toggle")) return;
         var skillId = this.getAttribute("data-skill-id");
         state.expandedSkill = skillId;
         render();
@@ -1494,6 +1901,84 @@
         render();
       }
     });
+  }
+
+  function bindServicesEvents() {
+    // OAuth connect buttons
+    var connectBtns = document.querySelectorAll(".service-connect-btn");
+    connectBtns.forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var provider = this.getAttribute("data-provider");
+        var popup = window.open("about:blank", "oauth", "width=600,height=700");
+        postJson("/api/oauth/start", { provider: provider })
+          .then(function (res) {
+            if (res.error) {
+              if (popup) popup.close();
+              showToast("连接失败: " + res.error, "error");
+              return;
+            }
+            if (popup) popup.location.href = res.url;
+            window.onOAuthDone = function () {
+              window.onOAuthDone = null;
+              loadOAuthStatus().then(function () {
+                render();
+              });
+            };
+          })
+          .catch(function (err) {
+            if (popup) popup.close();
+            showToast("连接失败: " + err.message, "error");
+          });
+      });
+    });
+
+    // OAuth disconnect buttons
+    var disconnectBtns = document.querySelectorAll(".service-disconnect-btn");
+    disconnectBtns.forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var provider = this.getAttribute("data-provider");
+        if (!confirm("确定要断开 " + provider + " 服务？")) return;
+        postJson("/api/oauth/disconnect", { provider: provider })
+          .then(function () {
+            if (state.oauthStatus[provider]) {
+              state.oauthStatus[provider].connected = false;
+            }
+            showToast("已断开", "success");
+            render();
+          })
+          .catch(function (err) {
+            showToast("断开失败: " + err.message, "error");
+          });
+      });
+    });
+
+    // X Cookie expand button
+    var expandBtn = document.querySelector(".service-expand-btn");
+    if (expandBtn) {
+      expandBtn.addEventListener("click", function () {
+        state.expandedService = state.expandedService === "x-cookies" ? null : "x-cookies";
+        render();
+      });
+    }
+
+    // X Cookie save button
+    var xCookiesSaveBtn = document.querySelector(".x-cookies-save-btn");
+    if (xCookiesSaveBtn) {
+      xCookiesSaveBtn.addEventListener("click", function () {
+        var inputs = document.querySelectorAll(".x-cookies-input");
+        var authToken = "";
+        var ct0 = "";
+        inputs.forEach(function (input) {
+          if (input.getAttribute("data-field") === "auth_token") authToken = input.value.trim();
+          if (input.getAttribute("data-field") === "ct0") ct0 = input.value.trim();
+        });
+        if (!authToken || !ct0) {
+          showToast("请填写 auth_token 和 ct0 两个值", "error");
+          return;
+        }
+        saveXCookies(authToken, ct0);
+      });
+    }
   }
 
   function bindIMEvents() {
@@ -1564,14 +2049,14 @@
       });
     });
 
-    var checkboxes = document.querySelectorAll(".knowledge-checkbox input");
+    var checkboxes = document.querySelectorAll(".knowledge-folder-item input");
     checkboxes.forEach(function (checkbox) {
       checkbox.addEventListener("change", function () {
         var card = this.closest(".knowledge-card");
         var source = card
           .querySelector(".knowledge-connect-btn, .knowledge-sync-btn, .knowledge-disconnect-btn")
           .getAttribute("data-source");
-        var checkedBoxes = card.querySelectorAll(".knowledge-checkbox input:checked");
+        var checkedBoxes = card.querySelectorAll(".knowledge-folder-item input:checked");
         var selectedIds = Array.from(checkedBoxes).map(function (cb) {
           return cb.value;
         });
@@ -1597,11 +2082,30 @@
   // ===== 15. SKILL HANDLERS =====
   function handleSkillEnable(skill) {
     if (skill.type === "oauth") {
-      handleOAuthEnable(skill);
+      var provider = skill.oauthProvider;
+      var isConnected = state.oauthStatus[provider] && state.oauthStatus[provider].connected;
+      if (isConnected) {
+        toggleSkill(skill.id, true);
+      } else {
+        handleOAuthEnable(skill);
+      }
     } else if (skill.type === "api-key") {
       var skillState = state.skills[skill.id] || {};
       if (!skillState.configured) {
         showToast("请先配置 API Key", "error");
+        render();
+        return;
+      }
+      toggleSkill(skill.id, true);
+    } else if (skill.type === "service-dep") {
+      var allConnected = (skill.requiredServices || []).every(function (svc) {
+        if (svc === "x-cookies") return state.xCookiesStatus && state.xCookiesStatus.configured;
+        return state.oauthStatus[svc] && state.oauthStatus[svc].connected;
+      });
+      if (!allConnected) {
+        showToast("请先在「服务」页面连接所需服务", "info");
+        state.currentTab = "services";
+        window.location.hash = "services";
         render();
         return;
       }
@@ -1612,7 +2116,54 @@
   }
 
   function handleSkillDisable(skill) {
-    toggleSkill(skill.id, false);
+    if (skill.type === "oauth" && skill.oauthProvider) {
+      var provider = skill.oauthProvider;
+      // Check if any OTHER enabled skill shares the same OAuth provider
+      var otherUsingProvider = SKILLS_META.some(function (s) {
+        return (
+          s.id !== skill.id &&
+          s.type === "oauth" &&
+          s.oauthProvider === provider &&
+          (state.skills[s.id] || {}).enabled !== false &&
+          (state.oauthStatus[provider] || {}).connected
+        );
+      });
+
+      // Disconnect OAuth FIRST (no gateway restart), then toggle off (triggers restart last)
+      var disconnectStep = otherUsingProvider
+        ? Promise.resolve()
+        : postJson("/api/oauth/disconnect", { provider: provider }).then(function () {
+            if (state.oauthStatus[provider]) {
+              state.oauthStatus[provider].connected = false;
+            }
+            if (provider === "google") {
+              state.knowledge.googleDrive.connected = false;
+            } else if (provider === "notion") {
+              state.knowledge.notion.connected = false;
+            }
+          });
+
+      disconnectStep
+        .then(function () {
+          return postJson("/api/setup/skills/toggle", {
+            skillId: skill.id,
+            enabled: false,
+          });
+        })
+        .then(function (res) {
+          if (!res.ok) throw new Error("toggle failed");
+          if (!state.skills[skill.id]) state.skills[skill.id] = {};
+          state.skills[skill.id].enabled = false;
+          showToast("技能已停用", "success");
+          render();
+        })
+        .catch(function (err) {
+          showToast("操作失败: " + err.message, "error");
+          render();
+        });
+    } else {
+      toggleSkill(skill.id, false);
+    }
   }
 
   function toggleSkill(skillId, enabled) {
@@ -1654,27 +2205,57 @@
       });
   }
 
+  function saveXCookies(authToken, ct0) {
+    postJson("/api/setup/x-cookies/save", { auth_token: authToken, ct0: ct0 })
+      .then(function (res) {
+        if (res.ok) {
+          state.xCookiesStatus = {
+            configured: true,
+            source: "file",
+            hasMaskedAuthToken: authToken.slice(0, 6) + "...",
+          };
+          if (!state.skills["x-assistant"]) {
+            state.skills["x-assistant"] = {};
+          }
+          state.skills["x-assistant"].configured = true;
+          showToast("Cookie 已保存", "success");
+          render();
+        } else {
+          showToast("保存失败: " + (res.error || "未知错误"), "error");
+        }
+      })
+      .catch(function (err) {
+        showToast("保存失败: " + err.message, "error");
+      });
+  }
+
   function handleOAuthEnable(skill) {
     var provider = skill.oauthProvider;
+    // Open popup synchronously (in user gesture context) to avoid popup blocker
+    var popup = window.open("about:blank", "oauth", "width=600,height=700");
     postJson("/api/oauth/start", { provider: provider })
       .then(function (res) {
         if (res.error) {
+          if (popup) popup.close();
           showToast("OAuth 启动失败: " + res.error, "error");
           render();
           return;
         }
         if (res.url) {
-          var popup = window.open(res.url, "oauth", "width=600,height=700");
+          if (popup) {
+            popup.location.href = res.url;
+          } else {
+            popup = window.open(res.url, "oauth", "width=600,height=700");
+          }
           var checkClosed = setInterval(function () {
             if (popup && popup.closed) {
               clearInterval(checkClosed);
-              // Re-render to reset toggle state if OAuth wasn't completed
               render();
             }
           }, 500);
           window.onOAuthDone = function () {
             clearInterval(checkClosed);
-            popup.close();
+            if (popup) popup.close();
             loadOAuthStatus().then(function () {
               toggleSkill(skill.id, true);
             });
@@ -1682,6 +2263,7 @@
         }
       })
       .catch(function (err) {
+        if (popup) popup.close();
         showToast("OAuth 启动失败: " + err.message, "error");
         render();
       });
@@ -1751,7 +2333,25 @@
   }
 
   function disconnectChannel(channel) {
-    showToast("断开连接功能待实现", "info");
+    if (
+      !confirm("确定要断开 " + (channel === "telegram" ? "Telegram" : "WhatsApp") + " 连接吗？")
+    ) {
+      return;
+    }
+    postJson("/api/setup/" + channel + "/disconnect", {})
+      .then(function (res) {
+        if (res.ok) {
+          state.channels[channel].configured = false;
+          state.channels[channel].userId = "";
+          showToast("已断开连接", "success");
+          render();
+        } else {
+          showToast("断开失败: " + (res.error || "未知错误"), "error");
+        }
+      })
+      .catch(function (err) {
+        showToast("断开失败: " + err.message, "error");
+      });
   }
 
   // ===== 17. KNOWLEDGE HANDLERS =====
@@ -1760,16 +2360,22 @@
     var provider = providerMap[source];
     if (!provider) return;
 
+    var popup = window.open("about:blank", "oauth", "width=600,height=700");
     postJson("/api/oauth/start", { provider: provider })
       .then(function (res) {
         if (res.error) {
+          if (popup) popup.close();
           showToast("OAuth 启动失败: " + res.error, "error");
           return;
         }
         if (res.url) {
-          var popup = window.open(res.url, "oauth", "width=600,height=700");
+          if (popup) {
+            popup.location.href = res.url;
+          } else {
+            popup = window.open(res.url, "oauth", "width=600,height=700");
+          }
           window.onOAuthDone = function () {
-            popup.close();
+            if (popup) popup.close();
             loadKnowledgeStatus().then(function () {
               showToast("连接成功", "success");
               render();
@@ -1778,6 +2384,7 @@
         }
       })
       .catch(function (err) {
+        if (popup) popup.close();
         showToast("连接失败: " + err.message, "error");
       });
   }
@@ -1862,12 +2469,25 @@
       .catch(function () {});
   }
 
+  function parseOAuthStatus(res) {
+    var map = {};
+    var list = Array.isArray(res) ? res : res.status || res;
+    if (Array.isArray(list)) {
+      list.forEach(function (p) {
+        map[p.id] = p;
+      });
+    } else {
+      map = list;
+    }
+    return map;
+  }
+
   function loadOAuthStatus() {
     return api("/api/oauth/status")
       .then(function (res) {
-        state.oauthStatus = res;
-        Object.keys(res).forEach(function (provider) {
-          var connected = res[provider].connected;
+        state.oauthStatus = parseOAuthStatus(res);
+        Object.keys(state.oauthStatus).forEach(function (provider) {
+          var connected = state.oauthStatus[provider].connected;
           if (provider === "google") {
             state.knowledge.googleDrive.connected = connected;
           } else if (provider === "notion") {
@@ -1883,7 +2503,7 @@
   // ===== 18. ROUTER =====
   function route() {
     var hash = window.location.hash.replace("#", "") || "skills";
-    if (["im", "skills", "knowledge"].indexOf(hash) !== -1) {
+    if (["im", "skills", "services", "knowledge"].indexOf(hash) !== -1) {
       state.currentTab = hash;
     } else {
       state.currentTab = "skills";
@@ -1904,12 +2524,23 @@
       api("/api/knowledge/status").catch(function () {
         return {};
       }),
+      api("/api/setup/x-cookies/status").catch(function () {
+        return { configured: false, source: null, hasMaskedAuthToken: null };
+      }),
+      api("/api/setup/admin-services/status").catch(function () {
+        return {};
+      }),
     ])
       .then(function (results) {
         var setupStatus = results[0];
         var skillsStatus = results[1];
         var oauthStatus = results[2];
         var knowledgeStatus = results[3];
+        var xCookiesStatus = results[4];
+        var adminServicesStatus = results[5];
+
+        state.xCookiesStatus = xCookiesStatus;
+        state.adminServicesStatus = adminServicesStatus;
 
         var channels = setupStatus.channels || {};
         var tg = channels.telegram || {};
@@ -1921,9 +2552,9 @@
 
         state.skills = skillsStatus;
 
-        state.oauthStatus = oauthStatus;
-        Object.keys(oauthStatus).forEach(function (provider) {
-          var connected = oauthStatus[provider].connected;
+        state.oauthStatus = parseOAuthStatus(oauthStatus);
+        Object.keys(state.oauthStatus).forEach(function (provider) {
+          var connected = state.oauthStatus[provider].connected;
           if (provider === "google") {
             state.knowledge.googleDrive.connected = connected;
           } else if (provider === "notion") {

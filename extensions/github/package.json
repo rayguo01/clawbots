@@ -1,7 +1,7 @@
 {
-  "name": "@nanobots/shipcast",
-  "version": "2026.2.10",
-  "description": "Auto-tweet your code updates from GitHub commits",
+  "name": "@nanobots/github",
+  "version": "2026.2.13",
+  "description": "GitHub API integration - list repos and get commits",
   "type": "module",
   "devDependencies": {
     "nanobots": "workspace:*"

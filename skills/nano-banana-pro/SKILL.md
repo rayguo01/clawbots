@@ -1,6 +1,6 @@
 ---
 name: nano-banana-pro
-description: Generate or edit images via Gemini 3 Pro Image (Nano Banana Pro). 关键词：生成图片、画图、修图、AI绘画、图片编辑。
+description: Generate or edit images via Gemini 3 Pro Image (Nano Banana Pro). 关键词：生成图片、画图、修图、AI绘画、图片编辑、画一张、帮我做图。
 homepage: https://ai.google.dev/
 metadata:
   {

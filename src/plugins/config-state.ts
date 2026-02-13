@@ -31,7 +31,8 @@ export const BUNDLED_ENABLED_BY_DEFAULT = new Set<string>([
   "dropbox",
   "microsoft365",
   "knowledge-base",
-  "shipcast",
+  "x-cookie",
+  "github",
 ]);
 
 const normalizeList = (value: unknown): string[] => {

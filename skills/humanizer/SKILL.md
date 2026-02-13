@@ -1,6 +1,6 @@
 ---
 name: humanizer
-description: "去除文本中的 AI 生成痕迹，使其更自然、更像人类书写，同时提供爆款潜力和人味评分。用户提到去AI味、优化文案、润色文章、改写文章、让文章更自然、AI痕迹时使用。Keywords: humanize, remove AI traces, rewrite, polish writing, natural tone, de-AI."
+description: "去除文本中的 AI 生成痕迹，使其更自然、更像人类书写，同时提供爆款潜力和人味评分。用户提到去AI味、优化文案、润色文案、润色文章、改写文章、改写一下、让文章更自然、更自然一点、AI痕迹时使用。Keywords: humanize, remove AI traces, rewrite, polish writing, natural tone, de-AI. 关键词：去AI味、润色文案、润色文章、改写文章、改写一下、更自然一点、AI痕迹。"
 ---
 
 # Humanizer: 去AI味优化

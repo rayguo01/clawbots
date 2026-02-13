@@ -1,6 +1,6 @@
 ---
 name: weather
-description: Get current weather and forecasts (no API key required). 关键词：天气、天气预报、温度、气温。
+description: Get current weather and forecasts (no API key required). 关键词：天气、天气预报、温度、气温、穿什么、今天冷吗、会下雨吗。
 homepage: https://wttr.in/:help
 metadata: { "openclaw": { "emoji": "🌤️", "requires": { "bins": ["curl"] } } }
 ---

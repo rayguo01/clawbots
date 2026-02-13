@@ -1,6 +1,6 @@
 ---
 name: fitbit-insights
-description: Fitbit health insights — activity, sleep, heart rate analysis and coaching. 关键词：运动数据、步数、睡眠、心率、健身、Fitbit。
+description: Fitbit health insights — activity, sleep, heart rate analysis and coaching. 关键词：运动数据、步数、睡眠、心率、健身、Fitbit、今天走了多少步、运动记录。
 ---
 
 # Fitbit Health Insights

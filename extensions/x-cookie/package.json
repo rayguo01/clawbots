@@ -1,0 +1,14 @@
+{
+  "name": "@nanobots/x-cookie",
+  "version": "2026.2.13",
+  "description": "X (Twitter) integration via cookie authentication - post, read, and search tweets",
+  "type": "module",
+  "devDependencies": {
+    "nanobots": "workspace:*"
+  },
+  "nanobots": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

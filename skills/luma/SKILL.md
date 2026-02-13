@@ -1,6 +1,6 @@
 ---
 name: luma
-description: "Fetch upcoming events from Luma (lu.ma) for any city. Use when user asks about tech events, startup meetups, networking events, conferences, or things happening in a city. Keywords: events, meetups, conferences, luma, lu.ma, tech events, startup events. 关键词：活动、聚会、会议、技术活动、创业活动、线下活动、lu.ma、什么活动、哪些活动。"
+description: "Fetch upcoming events from Luma (lu.ma) for any city. Use when user asks about tech events, startup meetups, networking events, conferences, or things happening in a city. Keywords: events, meetups, conferences, luma, lu.ma, tech events, startup events. 关键词：活动、聚会、会议、技术活动、创业活动、线下活动、lu.ma、什么活动、哪些活动、附近活动、周末活动、有什么聚会。"
 metadata: { "openclaw": { "requires": { "bins": ["python3"] } } }
 ---
 

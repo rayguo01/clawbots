@@ -1,6 +1,6 @@
 ---
 name: openai-whisper-api
-description: Transcribe audio via OpenAI Audio Transcriptions API (Whisper). 关键词：语音转文字、音频转写、录音识别。
+description: Transcribe audio via OpenAI Audio Transcriptions API (Whisper). 关键词：语音转文字、音频转写、录音识别、帮我听语音。
 homepage: https://platform.openai.com/docs/guides/speech-to-text
 metadata:
   {

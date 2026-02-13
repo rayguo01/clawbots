@@ -1,6 +1,6 @@
 ---
 name: ezbookkeeping
-description: "财务记账。用户提到花了多少钱、收入多少、查账单、查开销统计时使用。关键词：花了、块钱、元、收入、工资、开销、账单。Keywords: expense, income, spending, budget, bookkeeping, how much did I spend, cost, money tracker."
+description: "财务记账。用户提到花了多少钱、收入多少、查账单、查开销统计时使用。关键词：花了、块钱、元、收入、工资、开销、账单、记一笔、本月开支。Keywords: expense, income, spending, budget, bookkeeping, how much did I spend, cost, money tracker."
 homepage: https://github.com/mayswind/ezbookkeeping
 metadata:
   {

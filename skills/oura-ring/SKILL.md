@@ -1,6 +1,6 @@
 ---
 name: oura-ring
-description: Sync and analyze Oura Ring health data — sleep, readiness, activity, heart rate, stress, SpO2, workouts. 关键词：Oura戒指、睡眠质量、身体准备度、心率、压力、血氧、运动记录。
+description: Sync and analyze Oura Ring health data — sleep, readiness, activity, heart rate, stress, SpO2, workouts. 关键词：Oura戒指、睡眠质量、身体准备度、心率、压力、血氧、运动记录、睡眠报告、昨晚睡得怎么样、今日活动。
 homepage: https://ouraring.com
 metadata:
   {

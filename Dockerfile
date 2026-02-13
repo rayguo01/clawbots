@@ -24,7 +24,8 @@ COPY extensions/dropbox/package.json ./extensions/dropbox/
 COPY extensions/fitbit/package.json ./extensions/fitbit/
 COPY extensions/knowledge-base/package.json ./extensions/knowledge-base/
 COPY extensions/microsoft365/package.json ./extensions/microsoft365/
-COPY extensions/shipcast/package.json ./extensions/shipcast/
+COPY extensions/x-cookie/package.json ./extensions/x-cookie/
+COPY extensions/github/package.json ./extensions/github/
 
 RUN pnpm install --frozen-lockfile
 

@@ -1,21 +1,13 @@
 ---
 name: shipcast
-description: "Shipcast - Auto-tweet your code shipping updates. Push code to GitHub, AI rewrites commits into engaging tweets, posts on schedule. Keywords: shipcast, tweet, post tweet, announce, ship, shipped, auto tweet, dev log, build in public, coding update, share update, publish tweet."
+description: "Shipcast - Auto-tweet your code shipping updates. Push code to GitHub, AI rewrites commits into engaging tweets, posts on schedule. Keywords: shipcast, tweet, post tweet, announce, ship, shipped, auto tweet, dev log, build in public, coding update, share update, publish tweet. 关键词：生成更新推文、发布更新、代码更新推文、Build in Public。"
 metadata:
   {
     "openclaw":
       {
         "emoji": "🚀",
         "requires":
-          {
-            "tools":
-              [
-                "shipcast_list_repos",
-                "shipcast_get_commits",
-                "shipcast_post_tweet",
-                "shipcast_post_thread",
-              ],
-          },
+          { "tools": ["github_list_repos", "github_get_commits", "x_post_tweet", "x_post_thread"] },
       },
   }
 ---
@@ -28,22 +20,22 @@ Push code → AI writes tweet → Auto post. Build in public, effortlessly.
 
 ## Dependencies
 
-- `shipcast_list_repos` tool (GitHub API)
-- `shipcast_get_commits` tool (GitHub API)
-- `shipcast_post_tweet` tool (Twitter/X API)
-- `shipcast_post_thread` tool (Twitter/X API)
-- GitHub OAuth + X (Twitter) OAuth both connected
+- `github_list_repos` tool (GitHub API)
+- `github_get_commits` tool (GitHub API)
+- `x_post_tweet` tool (X Cookie API)
+- `x_post_thread` tool (X Cookie API)
+- GitHub OAuth connected + X Cookie configured
 
 ## First-Time Setup Flow
 
 When the user first mentions shipcast or auto-tweeting:
 
-1. **Check OAuth**: Verify both GitHub and Twitter are connected. If not, tell the user:
+1. **Check setup**: Verify GitHub OAuth is connected and X Cookie is configured. If not, tell the user:
 
-   > Go to Nanobots Setup → Services and connect your GitHub and X (Twitter) accounts.
-   > Stop here until both are connected.
+   > Go to Nanobots Setup → Services, connect your GitHub account and configure X Cookie.
+   > Stop here until both are set up.
 
-2. **Pick repo**: Use `shipcast_list_repos` to show the user their repos. Ask which one(s) to track.
+2. **Pick repo**: Use `github_list_repos` to show the user their repos. Ask which one(s) to track.
 
 3. **Set preferences**: Ask the user:
    - **Language**: Tweet in English, Chinese, or match repo language?
@@ -61,10 +53,10 @@ When the user first mentions shipcast or auto-tweeting:
 
        ## Instructions
        1. Read knowledge/shipcast/{owner}-{repo}/last-published.md to find the last published commit date
-       2. Use shipcast_get_commits with since = last published date
+       2. Use github_get_commits with since = last published date
        3. Filter out junk commits (see filtering rules below)
        4. If there are meaningful commits, compose a tweet following the writing guidelines
-       5. Post with shipcast_post_tweet (or shipcast_post_thread for big updates)
+       5. Post with x_post_tweet (or x_post_thread for big updates)
        6. Update last-published.md with the latest commit date
 
        ## Repo config
@@ -109,7 +101,7 @@ Write tweets as the developer (first person). Goals:
 
 ## Thread Guidelines
 
-Use threads (shipcast_post_thread) when:
+Use threads (x_post_thread) when:
 
 - A single tweet can't capture a significant update
 - Weekly summary of multiple features

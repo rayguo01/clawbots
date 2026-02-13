@@ -4,6 +4,7 @@ import { bumpSkillsSnapshotVersion, loadConfig } from "openclaw/plugin-sdk";
 import { updateConfig } from "./config-bridge.js";
 import { readJsonBody, sendJson } from "./helpers.js";
 import { loadToken } from "./oauth/store.js";
+import { hasXCookies } from "./x-cookies-setup.js";
 
 function hasBinary(name: string): boolean {
   try {
@@ -49,6 +50,12 @@ export async function handleSkillsStatus(
 
     const hasGitHubOAuth = !!(await loadToken("github"));
     const hasTwitterOAuth = !!(await loadToken("twitter"));
+    const hasGoogleOAuth = !!(await loadToken("google"));
+    const hasTodoistOAuth = !!(await loadToken("todoist"));
+    const hasNotionOAuth = !!(await loadToken("notion"));
+    const hasMicrosoft365OAuth = !!(await loadToken("microsoft365"));
+    const hasFitbitOAuth = !!(await loadToken("fitbit"));
+    const hasWeatherKey = !!process.env.NANOBOTS_OPENWEATHERMAP_API_KEY;
 
     const isEnabled = (id: string) => skillEntries[id]?.enabled !== false;
 
@@ -74,7 +81,19 @@ export async function handleSkillsStatus(
       humanizer: { configured: true, enabled: isEnabled("humanizer") },
       "oura-ring": { configured: hasOuraKey && hasUv, enabled: isEnabled("oura-ring") },
       "contract-agent": { configured: true, enabled: isEnabled("contract-agent") },
-      shipcast: { configured: hasGitHubOAuth && hasTwitterOAuth, enabled: isEnabled("shipcast") },
+      shipcast: {
+        configured: hasGitHubOAuth && hasXCookies(),
+        enabled: isEnabled("shipcast"),
+        requiredServices: ["github", "x-cookies"],
+      },
+      // OAuth-based skills
+      weather: { configured: hasWeatherKey, enabled: isEnabled("weather") },
+      "google-calendar": { configured: hasGoogleOAuth, enabled: isEnabled("google-calendar") },
+      gmail: { configured: hasGoogleOAuth, enabled: isEnabled("gmail") },
+      todoist: { configured: hasTodoistOAuth, enabled: isEnabled("todoist") },
+      notion: { configured: hasNotionOAuth, enabled: isEnabled("notion") },
+      microsoft365: { configured: hasMicrosoft365OAuth, enabled: isEnabled("microsoft365") },
+      "fitbit-insights": { configured: hasFitbitOAuth, enabled: isEnabled("fitbit-insights") },
       // Baoyu visual skills — depend on nano-banana-pro for image generation
       "baoyu-article-illustrator": {
         configured: hasApiKey || hasEnvKey,
@@ -93,9 +112,9 @@ export async function handleSkillsStatus(
         enabled: isEnabled("baoyu-cover-image"),
       },
       // Baoyu utility skills — need bun runtime
-      "baoyu-danger-x-to-markdown": {
-        configured: hasBinary("bun"),
-        enabled: isEnabled("baoyu-danger-x-to-markdown"),
+      "x-assistant": {
+        configured: hasXCookies(),
+        enabled: isEnabled("x-assistant"),
       },
       "baoyu-url-to-markdown": {
         configured: hasBinary("bun") && hasBinary("chromium"),
@@ -130,12 +149,19 @@ export async function handleSkillsStatus(
       humanizer: { configured: true, enabled: true },
       "oura-ring": { configured: false, enabled: true },
       "contract-agent": { configured: true, enabled: true },
-      shipcast: { configured: false, enabled: true },
+      shipcast: { configured: false, enabled: true, requiredServices: ["github", "x-cookies"] },
+      weather: { configured: false, enabled: true },
+      "google-calendar": { configured: false, enabled: true },
+      gmail: { configured: false, enabled: true },
+      todoist: { configured: false, enabled: true },
+      notion: { configured: false, enabled: true },
+      microsoft365: { configured: false, enabled: true },
+      "fitbit-insights": { configured: false, enabled: true },
       "baoyu-article-illustrator": { configured: false, enabled: true },
       "baoyu-infographic": { configured: false, enabled: true },
       "baoyu-xhs-images": { configured: false, enabled: true },
       "baoyu-cover-image": { configured: false, enabled: true },
-      "baoyu-danger-x-to-markdown": { configured: false, enabled: true },
+      "x-assistant": { configured: false, enabled: true },
       "baoyu-url-to-markdown": { configured: false, enabled: true },
       "copy-editing": { configured: true, enabled: true },
       copywriting: { configured: true, enabled: true },

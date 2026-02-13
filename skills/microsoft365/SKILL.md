@@ -1,6 +1,6 @@
 ---
 name: microsoft365
-description: Microsoft 365 Outlook email and calendar management — read, send, search emails and manage calendar events. 关键词：Outlook邮件、微软日历、Office邮箱、发邮件、会议安排。
+description: Microsoft 365 Outlook email and calendar management — read, send, search emails and manage calendar events. 关键词：Outlook邮件、微软日历、Office邮箱、发邮件、会议安排、查看邮件、日程安排。
 ---
 
 # Microsoft 365 (Outlook Email & Calendar)

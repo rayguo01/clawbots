@@ -20,6 +20,7 @@
         enabled: false,
         folders: [],
         selectedFolders: [],
+        rootFolder: null,
         lastSynced: null,
         fileCount: 0,
       },
@@ -36,6 +37,7 @@
         enabled: false,
         folders: [],
         selectedFolders: [],
+        rootFolder: null,
         lastSynced: null,
         fileCount: 0,
       },
@@ -160,6 +162,8 @@
     user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
     upload:
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>',
+    chevronRight:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>',
   };
 
   // ===== 5. CATEGORIES =====
@@ -1073,16 +1077,7 @@
       '<div class="nav-left">' +
       '<a class="brand" href="#skills">' +
       '<div class="brand-icon">' +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
-      '<rect x="5" y="8" width="14" height="10" rx="2"/>' +
-      '<path d="M12 8V5"/>' +
-      '<circle cx="12" cy="3" r="2"/>' +
-      '<circle cx="9" cy="13" r="1" fill="currentColor" stroke="none"/>' +
-      '<circle cx="15" cy="13" r="1" fill="currentColor" stroke="none"/>' +
-      '<path d="M9 17h6"/>' +
-      '<path d="M3 12H1"/>' +
-      '<path d="M23 12h-2"/>' +
-      "</svg>" +
+      '<img src="/web/logo.png" alt="Nanobots" class="brand-logo">' +
       "</div>" +
       '<span class="brand-name">Nanobots</span>' +
       "</a>" +
@@ -1607,6 +1602,8 @@
       icon: "gdrive",
       desc: "同步 Google Docs、Sheets 等云端文件",
       itemLabel: "文件夹",
+      type: "folderBrowser",
+      serviceProvider: "google",
     },
     {
       id: "notion",
@@ -1614,6 +1611,8 @@
       icon: "notion",
       desc: "同步 Notion 页面和数据库内容",
       itemLabel: "数据库",
+      type: "databaseSelect",
+      serviceProvider: "notion",
     },
     {
       id: "dropbox",
@@ -1621,14 +1620,16 @@
       icon: "dropbox",
       desc: "同步 Dropbox 云存储中的文件",
       itemLabel: "文件夹",
+      type: "folderBrowser",
+      serviceProvider: "dropbox",
     },
   ];
 
   var BEST_PRACTICES = [
     {
       id: "personal",
-      name: "个人文档目录",
-      desc: "推荐的个人知识库结构，让 AI 帮你系统化管理知识",
+      name: "个人文档目录（内容创作者）",
+      desc: "推荐的内容创作者的个人知识库结构，让 AI 帮你系统化管理知识",
       icon: "folder",
       defaultRoot: "PersonalBrain",
       tree: [
@@ -1703,6 +1704,13 @@
   ];
 
   function renderKnowledgeCard(sourceMeta) {
+    if (sourceMeta.type === "databaseSelect") {
+      return renderNotionCard(sourceMeta);
+    }
+    return renderFolderBrowserCard(sourceMeta);
+  }
+
+  function renderNotionCard(sourceMeta) {
     var sourceData = state.knowledge[sourceMeta.id];
     var connected = sourceData.connected;
     var statusClass = connected ? "enabled" : "needs-config";
@@ -1711,15 +1719,9 @@
     var buttonHtml = "";
     if (connected) {
       buttonHtml =
-        '<button class="knowledge-sync-btn" data-source="' +
-        sourceMeta.id +
-        '">同步</button>' +
-        '<button class="knowledge-disconnect-btn" data-source="' +
-        sourceMeta.id +
-        '">断开</button>';
+        '<button class="knowledge-sync-btn" data-source="' + sourceMeta.id + '">同步</button>';
     } else {
-      buttonHtml =
-        '<button class="knowledge-connect-btn" data-source="' + sourceMeta.id + '">连接</button>';
+      buttonHtml = '<a class="knowledge-go-service-link" href="#services">前往服务页面连接</a>';
     }
 
     var syncInfo = "";
@@ -1732,9 +1734,8 @@
 
     var selectionHtml = "";
     if (connected) {
-      var items = sourceMeta.id === "notion" ? sourceData.databases : sourceData.folders;
-      var selectedItems =
-        sourceMeta.id === "notion" ? sourceData.selectedDatabases : sourceData.selectedFolders;
+      var items = sourceData.databases;
+      var selectedItems = sourceData.selectedDatabases;
       if (items && items.length > 0) {
         var checkboxesHtml = items
           .map(function (item) {
@@ -1806,6 +1807,119 @@
     );
   }
 
+  function renderFolderBrowserCard(sourceMeta) {
+    var sourceData = state.knowledge[sourceMeta.id];
+    var connected = sourceData.connected;
+
+    // State 1: Not connected
+    if (!connected) {
+      return (
+        '<div class="knowledge-card">' +
+        '<div class="knowledge-card-header">' +
+        '<div class="knowledge-card-icon icon-' +
+        sourceMeta.icon +
+        '">' +
+        (ICONS[sourceMeta.icon] || "") +
+        "</div>" +
+        '<div class="knowledge-card-info">' +
+        '<div class="knowledge-card-name">' +
+        sourceMeta.name +
+        "</div>" +
+        '<div class="knowledge-card-desc">' +
+        sourceMeta.desc +
+        "</div>" +
+        "</div>" +
+        '<div class="knowledge-card-right">' +
+        '<span class="status-badge needs-config"><span class="status-badge-dot"></span>未连接</span>' +
+        '<a class="knowledge-go-service-link" href="#services">前往服务页面连接</a>' +
+        "</div>" +
+        "</div>" +
+        "</div>"
+      );
+    }
+
+    var rootFolder = sourceData.rootFolder;
+    var syncInfo = "";
+    if (sourceData.lastSynced) {
+      syncInfo =
+        '<div class="knowledge-sync-info">最后同步: ' +
+        new Date(sourceData.lastSynced).toLocaleString() +
+        " · " +
+        sourceData.fileCount +
+        " 个文件</div>";
+    }
+
+    // State 2: Connected, no root folder set
+    if (!rootFolder) {
+      return (
+        '<div class="knowledge-card knowledge-card-connected">' +
+        '<div class="knowledge-card-header">' +
+        '<div class="knowledge-card-icon icon-' +
+        sourceMeta.icon +
+        '">' +
+        (ICONS[sourceMeta.icon] || "") +
+        "</div>" +
+        '<div class="knowledge-card-info">' +
+        '<div class="knowledge-card-name">' +
+        sourceMeta.name +
+        "</div>" +
+        '<div class="knowledge-card-desc">' +
+        sourceMeta.desc +
+        "</div>" +
+        "</div>" +
+        '<div class="knowledge-card-right">' +
+        '<span class="status-badge enabled"><span class="status-badge-dot"></span>已连接</span>' +
+        '<button class="knowledge-set-root-btn" data-source="' +
+        sourceMeta.id +
+        '">设置知识库目录</button>' +
+        "</div>" +
+        "</div>" +
+        "</div>"
+      );
+    }
+
+    // State 3: Connected, root folder set
+    return (
+      '<div class="knowledge-card knowledge-card-connected">' +
+      '<div class="knowledge-card-header">' +
+      '<div class="knowledge-card-icon icon-' +
+      sourceMeta.icon +
+      '">' +
+      (ICONS[sourceMeta.icon] || "") +
+      "</div>" +
+      '<div class="knowledge-card-info">' +
+      '<div class="knowledge-card-name">' +
+      sourceMeta.name +
+      "</div>" +
+      '<div class="knowledge-card-desc">' +
+      sourceMeta.desc +
+      "</div>" +
+      "</div>" +
+      '<div class="knowledge-card-right">' +
+      '<span class="status-badge enabled"><span class="status-badge-dot"></span>已连接</span>' +
+      '<button class="knowledge-sync-btn" data-source="' +
+      sourceMeta.id +
+      '">同步</button>' +
+      "</div>" +
+      "</div>" +
+      '<div class="knowledge-root-info">' +
+      '<div class="knowledge-root-path">' +
+      '<span class="knowledge-root-icon">' +
+      ICONS.folder +
+      "</span>" +
+      '<span class="knowledge-root-name">' +
+      escapeHtml(rootFolder.name) +
+      "</span>" +
+      "</div>" +
+      '<button class="knowledge-change-root-btn" data-source="' +
+      sourceMeta.id +
+      '">修改</button>' +
+      "</div>" +
+      syncInfo +
+      "</div>"
+    );
+  }
+
   function renderBestPracticeCard(bp) {
     return (
       '<div class="knowledge-card bp-card" data-bp="' +
@@ -1842,9 +1956,10 @@
       return renderBestPracticeCard(bp);
     }).join("");
 
-    var anyConnected = state.knowledge.googleDrive.connected || state.knowledge.dropbox.connected;
-    var syncBtnDisabled = !anyConnected ? " disabled" : "";
-    var syncBtnTitle = !anyConnected ? "请先连接云服务" : "同步个人档案";
+    var anyRootFolder =
+      state.knowledge.googleDrive.rootFolder || state.knowledge.dropbox.rootFolder;
+    var syncBtnDisabled = !anyRootFolder ? " disabled" : "";
+    var syncBtnTitle = !anyRootFolder ? "请先设置知识库目录" : "同步个人档案";
 
     var profileSyncCard =
       '<div class="knowledge-card bp-profile-card">' +
@@ -1917,15 +2032,27 @@
       .join("");
 
     var targetOptions = "";
-    if (state.knowledge.googleDrive.connected) {
-      targetOptions += '<option value="google-drive">Google Drive</option>';
+    var gdRoot = state.knowledge.googleDrive.rootFolder;
+    var dbRoot = state.knowledge.dropbox.rootFolder;
+    if (gdRoot) {
+      targetOptions +=
+        '<option value="google-drive" data-root-id="' +
+        escapeHtml(gdRoot.id) +
+        '">Google Drive — ' +
+        escapeHtml(gdRoot.name) +
+        "</option>";
     }
-    if (state.knowledge.dropbox.connected) {
-      targetOptions += '<option value="dropbox">Dropbox</option>';
+    if (dbRoot) {
+      targetOptions +=
+        '<option value="dropbox" data-root-id="' +
+        escapeHtml(dbRoot.id) +
+        '">Dropbox — ' +
+        escapeHtml(dbRoot.name) +
+        "</option>";
     }
     var noTarget = !targetOptions;
     if (noTarget) {
-      targetOptions = '<option value="">请先连接云服务</option>';
+      targetOptions = '<option value="">请先设置知识库目录</option>';
     }
 
     var descText =
@@ -1950,19 +2077,13 @@
       treeHtml +
       "</div>" +
       '<div class="bp-modal-form">' +
-      '<label class="bp-form-label">根文件夹名称</label>' +
-      '<input type="text" class="bp-form-input" id="bpRootName" value="' +
-      escapeHtml(bp.defaultRoot) +
-      '">' +
       '<label class="bp-form-label">创建到</label>' +
       '<select class="bp-form-select" id="bpTarget"' +
       (noTarget ? " disabled" : "") +
       ">" +
       targetOptions +
       "</select>" +
-      (noTarget
-        ? '<p class="bp-form-hint">请先在上方「云端文档」区域连接 Google Drive 或 Dropbox</p>'
-        : "") +
+      (noTarget ? '<p class="bp-form-hint">请先在上方「云端文档」区域设置知识库目录</p>' : "") +
       "</div>" +
       "</div>" +
       '<div class="bp-modal-footer">' +
@@ -2001,10 +2122,13 @@
       if (e.target === this) closeBestPracticeModal();
     });
     document.getElementById("bpModalConfirm").addEventListener("click", function () {
-      var rootName = document.getElementById("bpRootName").value.trim();
-      var target = document.getElementById("bpTarget").value;
-      if (!rootName || !target) return;
-      createBestPracticeStructure(bpId, rootName, target);
+      var targetSelect = document.getElementById("bpTarget");
+      var target = targetSelect.value;
+      if (!target) return;
+      var selectedOption = targetSelect.options[targetSelect.selectedIndex];
+      var rootFolderId = selectedOption.getAttribute("data-root-id");
+      if (!rootFolderId) return;
+      createBestPracticeStructure(bpId, rootFolderId, target);
     });
   }
 
@@ -2013,7 +2137,293 @@
     if (modal) modal.remove();
   }
 
-  function createBestPracticeStructure(template, rootName, target) {
+  // ===== FOLDER BROWSER MODAL =====
+  var fbState = {
+    source: null,
+    breadcrumb: [],
+    loading: false,
+  };
+
+  function renderFolderBrowserModal(source, folders, breadcrumb) {
+    var folderListHtml = "";
+    if (folders.length === 0) {
+      folderListHtml = '<div class="fb-empty">此目录下没有子文件夹</div>';
+    } else {
+      folderListHtml = folders
+        .map(function (f) {
+          return (
+            '<div class="fb-folder-item" data-folder-id="' +
+            escapeHtml(f.id) +
+            '" data-folder-name="' +
+            escapeHtml(f.name) +
+            '">' +
+            '<span class="fb-folder-icon">' +
+            ICONS.folder +
+            "</span>" +
+            '<span class="fb-folder-name">' +
+            escapeHtml(f.name) +
+            "</span>" +
+            '<span class="fb-folder-arrow">' +
+            ICONS.chevronRight +
+            "</span>" +
+            "</div>"
+          );
+        })
+        .join("");
+    }
+
+    var breadcrumbHtml = breadcrumb
+      .map(function (item, idx) {
+        if (idx === breadcrumb.length - 1) {
+          return '<span class="fb-breadcrumb-current">' + escapeHtml(item.name) + "</span>";
+        }
+        return (
+          '<span class="fb-breadcrumb-item" data-folder-id="' +
+          (item.id || "") +
+          '" data-index="' +
+          idx +
+          '">' +
+          escapeHtml(item.name) +
+          "</span>" +
+          '<span class="fb-breadcrumb-sep">/</span>'
+        );
+      })
+      .join("");
+
+    var currentFolder = breadcrumb[breadcrumb.length - 1];
+    var isRoot = breadcrumb.length <= 1;
+    var selectDisabled = isRoot ? " disabled" : "";
+    var selectTitle = isRoot ? "请进入一个文件夹后选择" : "";
+
+    return (
+      '<div class="fb-modal-overlay" id="fbModal">' +
+      '<div class="fb-modal">' +
+      '<div class="fb-modal-header">' +
+      "<h2>选择知识库目录</h2>" +
+      '<button class="fb-modal-close" id="fbModalClose">&times;</button>' +
+      "</div>" +
+      '<div class="fb-breadcrumb">' +
+      breadcrumbHtml +
+      "</div>" +
+      '<div class="fb-modal-body" id="fbFolderList">' +
+      folderListHtml +
+      "</div>" +
+      '<div class="fb-modal-footer">' +
+      '<button class="fb-modal-cancel" id="fbModalCancel">取消</button>' +
+      '<button class="fb-modal-select" id="fbModalSelect"' +
+      selectDisabled +
+      ' title="' +
+      selectTitle +
+      '"' +
+      ' data-source="' +
+      source +
+      '"' +
+      ' data-folder-id="' +
+      escapeHtml(currentFolder.id || "") +
+      '"' +
+      ' data-folder-name="' +
+      escapeHtml(currentFolder.name) +
+      '"' +
+      ">选择此目录</button>" +
+      "</div>" +
+      "</div>" +
+      "</div>"
+    );
+  }
+
+  function showFolderBrowserModal(source) {
+    fbState.source = source;
+    fbState.breadcrumb = [{ id: null, name: "根目录" }];
+
+    var existing = document.getElementById("fbModal");
+    if (existing) existing.remove();
+
+    var div = document.createElement("div");
+    div.innerHTML = renderFolderBrowserModal(source, [], [{ id: null, name: "根目录" }]);
+    document.body.appendChild(div.firstElementChild);
+    bindFolderBrowserEvents();
+
+    loadFolderContents(null);
+  }
+
+  function closeFolderBrowserModal() {
+    var modal = document.getElementById("fbModal");
+    if (modal) modal.remove();
+    fbState.source = null;
+    fbState.breadcrumb = [];
+  }
+
+  function loadFolderContents(parentId) {
+    var source = fbState.source;
+    var sourceMap = { googleDrive: "google-drive", dropbox: "dropbox" };
+    var apiSource = sourceMap[source];
+
+    var url = "/api/knowledge/" + apiSource + "/folders";
+    if (parentId) url += "?parentId=" + encodeURIComponent(parentId);
+
+    api(url)
+      .then(function (res) {
+        if (!res.connected) {
+          closeFolderBrowserModal();
+          showToast("服务未连接", "error");
+          return;
+        }
+        updateFolderBrowserContent(res.folders || []);
+      })
+      .catch(function (err) {
+        showToast("加载文件夹失败: " + err.message, "error");
+      });
+  }
+
+  function navigateToFolder(folderId, folderName) {
+    fbState.breadcrumb.push({ id: folderId, name: folderName });
+    updateFolderBrowserUI();
+    loadFolderContents(folderId);
+  }
+
+  function navigateToBreadcrumb(index) {
+    fbState.breadcrumb = fbState.breadcrumb.slice(0, index + 1);
+    var current = fbState.breadcrumb[fbState.breadcrumb.length - 1];
+    updateFolderBrowserUI();
+    loadFolderContents(current.id);
+  }
+
+  function updateFolderBrowserContent(folders) {
+    var listEl = document.getElementById("fbFolderList");
+    if (!listEl) return;
+
+    if (folders.length === 0) {
+      listEl.innerHTML = '<div class="fb-empty">此目录下没有子文件夹</div>';
+    } else {
+      listEl.innerHTML = folders
+        .map(function (f) {
+          return (
+            '<div class="fb-folder-item" data-folder-id="' +
+            escapeHtml(f.id) +
+            '" data-folder-name="' +
+            escapeHtml(f.name) +
+            '">' +
+            '<span class="fb-folder-icon">' +
+            ICONS.folder +
+            "</span>" +
+            '<span class="fb-folder-name">' +
+            escapeHtml(f.name) +
+            "</span>" +
+            '<span class="fb-folder-arrow">' +
+            ICONS.chevronRight +
+            "</span>" +
+            "</div>"
+          );
+        })
+        .join("");
+    }
+
+    var items = listEl.querySelectorAll(".fb-folder-item");
+    items.forEach(function (item) {
+      item.addEventListener("click", function () {
+        var fid = this.getAttribute("data-folder-id");
+        var fname = this.getAttribute("data-folder-name");
+        navigateToFolder(fid, fname);
+      });
+    });
+
+    var selectBtn = document.getElementById("fbModalSelect");
+    if (selectBtn) {
+      var current = fbState.breadcrumb[fbState.breadcrumb.length - 1];
+      var isRoot = fbState.breadcrumb.length <= 1;
+      selectBtn.disabled = isRoot;
+      selectBtn.setAttribute("data-folder-id", current.id || "");
+      selectBtn.setAttribute("data-folder-name", current.name);
+      selectBtn.title = isRoot ? "请进入一个文件夹后选择" : "";
+    }
+  }
+
+  function updateFolderBrowserUI() {
+    var breadcrumbEl = document.querySelector(".fb-breadcrumb");
+    if (!breadcrumbEl) return;
+
+    breadcrumbEl.innerHTML = fbState.breadcrumb
+      .map(function (item, idx) {
+        if (idx === fbState.breadcrumb.length - 1) {
+          return '<span class="fb-breadcrumb-current">' + escapeHtml(item.name) + "</span>";
+        }
+        return (
+          '<span class="fb-breadcrumb-item" data-folder-id="' +
+          (item.id || "") +
+          '" data-index="' +
+          idx +
+          '">' +
+          escapeHtml(item.name) +
+          "</span>" +
+          '<span class="fb-breadcrumb-sep">/</span>'
+        );
+      })
+      .join("");
+
+    var crumbs = breadcrumbEl.querySelectorAll(".fb-breadcrumb-item");
+    crumbs.forEach(function (crumb) {
+      crumb.addEventListener("click", function () {
+        var idx = parseInt(this.getAttribute("data-index"), 10);
+        navigateToBreadcrumb(idx);
+      });
+    });
+
+    var listEl = document.getElementById("fbFolderList");
+    if (listEl) {
+      listEl.innerHTML = '<div class="fb-loading">加载中...</div>';
+    }
+  }
+
+  function selectRootFolder(source, folderId, folderName) {
+    var sourceMap = { googleDrive: "google-drive", dropbox: "dropbox" };
+    var apiSource = sourceMap[source];
+
+    var config = {};
+    config[apiSource] = {
+      enabled: true,
+      rootFolder: { id: folderId, name: folderName },
+    };
+
+    fetch("/api/knowledge/config", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(config),
+    })
+      .then(function (r) {
+        return r.json();
+      })
+      .then(function (res) {
+        if (res.ok) {
+          state.knowledge[source].rootFolder = { id: folderId, name: folderName };
+          state.knowledge[source].enabled = true;
+          closeFolderBrowserModal();
+          showToast("知识库目录已设置为: " + folderName, "success");
+          render();
+        } else {
+          showToast("保存失败", "error");
+        }
+      })
+      .catch(function (err) {
+        showToast("保存失败: " + err.message, "error");
+      });
+  }
+
+  function bindFolderBrowserEvents() {
+    document.getElementById("fbModalClose").addEventListener("click", closeFolderBrowserModal);
+    document.getElementById("fbModalCancel").addEventListener("click", closeFolderBrowserModal);
+    document.getElementById("fbModal").addEventListener("click", function (e) {
+      if (e.target === this) closeFolderBrowserModal();
+    });
+    document.getElementById("fbModalSelect").addEventListener("click", function () {
+      var source = this.getAttribute("data-source");
+      var folderId = this.getAttribute("data-folder-id");
+      var folderName = this.getAttribute("data-folder-name");
+      if (!folderId || this.disabled) return;
+      selectRootFolder(source, folderId, folderName);
+    });
+  }
+
+  function createBestPracticeStructure(template, rootFolderId, target) {
     var btn = document.getElementById("bpModalConfirm");
     if (btn) {
       btn.disabled = true;
@@ -2022,7 +2432,7 @@
 
     postJson("/api/knowledge/create-structure", {
       template: template,
-      rootName: rootName,
+      rootFolderId: rootFolderId,
       target: target,
     })
       .then(function (res) {
@@ -2048,8 +2458,20 @@
   }
 
   function syncProfile() {
-    var target = state.knowledge.googleDrive.connected ? "google-drive" : "dropbox";
-    var rootName = "PersonalBrain";
+    var gdRoot = state.knowledge.googleDrive.rootFolder;
+    var dbRoot = state.knowledge.dropbox.rootFolder;
+    var target;
+    var rootFolderId;
+    if (gdRoot) {
+      target = "google-drive";
+      rootFolderId = gdRoot.id;
+    } else if (dbRoot) {
+      target = "dropbox";
+      rootFolderId = dbRoot.id;
+    } else {
+      showToast("请先设置知识库目录", "error");
+      return;
+    }
 
     var btn = document.querySelector(".bp-sync-profile-btn");
     if (btn) {
@@ -2059,7 +2481,7 @@
 
     postJson("/api/knowledge/sync-profile", {
       target: target,
-      rootName: rootName,
+      rootFolderId: rootFolderId,
     })
       .then(function (res) {
         if (btn) {
@@ -2362,14 +2784,18 @@
   }
 
   function bindKnowledgeEvents() {
-    var connectBtns = document.querySelectorAll(".knowledge-connect-btn");
-    connectBtns.forEach(function (btn) {
+    // Set root folder buttons (folderBrowser cards)
+    var setRootBtns = document.querySelectorAll(
+      ".knowledge-set-root-btn, .knowledge-change-root-btn",
+    );
+    setRootBtns.forEach(function (btn) {
       btn.addEventListener("click", function () {
         var source = this.getAttribute("data-source");
-        connectKnowledge(source);
+        showFolderBrowserModal(source);
       });
     });
 
+    // Sync buttons
     var syncBtns = document.querySelectorAll(".knowledge-sync-btn");
     syncBtns.forEach(function (btn) {
       btn.addEventListener("click", function () {
@@ -2378,26 +2804,17 @@
       });
     });
 
-    var disconnectBtns = document.querySelectorAll(".knowledge-disconnect-btn");
-    disconnectBtns.forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        var source = this.getAttribute("data-source");
-        disconnectKnowledge(source);
-      });
-    });
-
+    // Notion database checkboxes
     var checkboxes = document.querySelectorAll(".knowledge-folder-item input");
     checkboxes.forEach(function (checkbox) {
       checkbox.addEventListener("change", function () {
-        var card = this.closest(".knowledge-card");
-        var source = card
-          .querySelector(".knowledge-connect-btn, .knowledge-sync-btn, .knowledge-disconnect-btn")
-          .getAttribute("data-source");
-        var checkedBoxes = card.querySelectorAll(".knowledge-folder-item input:checked");
+        var checkedBoxes = this.closest(".knowledge-card").querySelectorAll(
+          ".knowledge-folder-item input:checked",
+        );
         var selectedIds = Array.from(checkedBoxes).map(function (cb) {
           return cb.value;
         });
-        updateKnowledgeSelection(source, selectedIds);
+        updateKnowledgeSelection("notion", selectedIds);
       });
     });
 
@@ -2710,40 +3127,6 @@
   }
 
   // ===== 17. KNOWLEDGE HANDLERS =====
-  function connectKnowledge(source) {
-    var providerMap = { googleDrive: "google", notion: "notion", dropbox: "dropbox" };
-    var provider = providerMap[source];
-    if (!provider) return;
-
-    var popup = window.open("about:blank", "oauth", "width=600,height=700");
-    postJson("/api/oauth/start", { provider: provider })
-      .then(function (res) {
-        if (res.error) {
-          if (popup) popup.close();
-          showToast("OAuth 启动失败: " + res.error, "error");
-          return;
-        }
-        if (res.url) {
-          if (popup) {
-            popup.location.href = res.url;
-          } else {
-            popup = window.open(res.url, "oauth", "width=600,height=700");
-          }
-          window.onOAuthDone = function () {
-            if (popup) popup.close();
-            loadKnowledgeStatus().then(function () {
-              showToast("连接成功", "success");
-              render();
-            });
-          };
-        }
-      })
-      .catch(function (err) {
-        if (popup) popup.close();
-        showToast("连接失败: " + err.message, "error");
-      });
-  }
-
   function syncKnowledge(source) {
     var sourceMap = { googleDrive: "google-drive", notion: "notion", dropbox: "dropbox" };
     var apiSource = sourceMap[source];
@@ -2763,24 +3146,6 @@
       });
   }
 
-  function disconnectKnowledge(source) {
-    var providerMap = { googleDrive: "google", notion: "notion", dropbox: "dropbox" };
-    var provider = providerMap[source];
-    postJson("/api/oauth/disconnect", { provider: provider })
-      .then(function (res) {
-        if (res.ok) {
-          state.knowledge[source].connected = false;
-          showToast("已断开连接", "success");
-          render();
-        } else {
-          showToast("断开失败", "error");
-        }
-      })
-      .catch(function (err) {
-        showToast("断开失败: " + err.message, "error");
-      });
-  }
-
   function updateKnowledgeSelection(source, selectedIds) {
     var field = source === "notion" ? "selectedDatabases" : "selectedFolders";
     state.knowledge[source][field] = selectedIds;
@@ -2789,9 +3154,33 @@
 
   function saveKnowledgeConfig() {
     var config = {};
-    Object.keys(state.knowledge).forEach(function (source) {
-      config[source] = state.knowledge[source];
-    });
+
+    // Google Drive
+    var gd = state.knowledge.googleDrive;
+    var gdConfig = { enabled: gd.enabled };
+    if (gd.rootFolder) {
+      gdConfig.rootFolder = gd.rootFolder;
+    }
+    if (gd.selectedFolders && gd.selectedFolders.length > 0) {
+      gdConfig.folders = gd.selectedFolders;
+    }
+    config["google-drive"] = gdConfig;
+
+    // Notion
+    var n = state.knowledge.notion;
+    config.notion = {
+      enabled: n.enabled,
+      databases: n.selectedDatabases || [],
+    };
+
+    // Dropbox
+    var db = state.knowledge.dropbox;
+    var dbConfig = { enabled: db.enabled };
+    if (db.rootFolder) {
+      dbConfig.rootFolder = db.rootFolder;
+    }
+    config.dropbox = dbConfig;
+
     fetch("/api/knowledge/config", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -2885,6 +3274,9 @@
       api("/api/setup/admin-services/status").catch(function () {
         return {};
       }),
+      api("/api/knowledge/config").catch(function () {
+        return {};
+      }),
     ])
       .then(function (results) {
         var setupStatus = results[0];
@@ -2893,6 +3285,7 @@
         var knowledgeStatus = results[3];
         var xCookiesStatus = results[4];
         var adminServicesStatus = results[5];
+        var knowledgeConfig = results[6] || {};
 
         state.xCookiesStatus = xCookiesStatus;
         state.adminServicesStatus = adminServicesStatus;
@@ -2926,6 +3319,16 @@
             state.knowledge[source].fileCount = knowledgeStatus[sourceKey].fileCount;
           }
         });
+
+        // Load rootFolder from knowledge config
+        var gdConfig = knowledgeConfig["google-drive"] || {};
+        if (gdConfig.rootFolder) {
+          state.knowledge.googleDrive.rootFolder = gdConfig.rootFolder;
+        }
+        var dbConfig = knowledgeConfig.dropbox || {};
+        if (dbConfig.rootFolder) {
+          state.knowledge.dropbox.rootFolder = dbConfig.rootFolder;
+        }
 
         var hasChannel = state.channels.telegram.configured || state.channels.whatsapp.configured;
         state.showOnboarding = !hasChannel;

@@ -3,13 +3,7 @@ import type { OpenClawPluginApi } from "openclaw/plugin-sdk";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import {
-  loadConfig,
-  writeConfigFile,
-  readConfigFileSnapshot,
-  resolveAgentWorkspaceDir,
-  resolveDefaultAgentId,
-} from "openclaw/plugin-sdk";
+import { loadConfig, resolveAgentWorkspaceDir, resolveDefaultAgentId } from "openclaw/plugin-sdk";
 import type { KnowledgeConfig } from "./types.js";
 import { googleFetch } from "../../google-services/src/google-api.js";
 import { notionFetch } from "../../notion/src/notion-api.js";
@@ -45,6 +39,25 @@ function resolveKnowledgeDir(): string {
 }
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+function resolveKnowledgeConfigPath(): string {
+  return path.join(resolveKnowledgeDir(), "knowledge-config.json");
+}
+
+async function loadKnowledgeConfig(): Promise<Record<string, unknown>> {
+  try {
+    const raw = await fs.readFile(resolveKnowledgeConfigPath(), "utf-8");
+    return JSON.parse(raw);
+  } catch {
+    return {};
+  }
+}
+
+async function saveKnowledgeConfig(config: Record<string, unknown>): Promise<void> {
+  const configPath = resolveKnowledgeConfigPath();
+  await fs.mkdir(path.dirname(configPath), { recursive: true });
+  await fs.writeFile(configPath, JSON.stringify(config, null, 2) + "\n", "utf-8");
+}
 
 async function loadCompanyTemplateEntries(): Promise<Array<{ path: string; content?: string }>> {
   const entries: Array<{ path: string; content?: string }> = [];
@@ -84,20 +97,19 @@ export function registerKnowledgeRoutes(api: OpenClawPluginApi) {
     path: "/api/knowledge/config",
     handler: async (req, res) => {
       if (req.method === "GET") {
-        const cfg = loadConfig();
-        const knowledgeConfig = (cfg as Record<string, unknown>).knowledge ?? {};
-        sendJson(res, 200, knowledgeConfig);
+        const config = await loadKnowledgeConfig();
+        sendJson(res, 200, config);
         return;
       }
 
       if (req.method === "PUT") {
         try {
           const body = await readBody(req);
-          const newConfig = JSON.parse(body) as KnowledgeConfig;
-          const snapshot = readConfigFileSnapshot();
-          const current = snapshot ? JSON.parse(snapshot) : {};
-          current.knowledge = newConfig;
-          writeConfigFile(JSON.stringify(current, null, 2));
+          const newConfig = JSON.parse(body);
+          const current = await loadKnowledgeConfig();
+          // Merge: new values override existing per source key
+          Object.assign(current, newConfig);
+          await saveKnowledgeConfig(current);
           sendJson(res, 200, { ok: true });
         } catch (err) {
           sendJson(res, 400, { error: String(err) });
@@ -110,7 +122,7 @@ export function registerKnowledgeRoutes(api: OpenClawPluginApi) {
     },
   });
 
-  // GET /api/knowledge/google-drive/folders — list Google Drive folders
+  // GET /api/knowledge/google-drive/folders — list Google Drive folders (supports ?parentId=xxx)
   api.registerHttpRoute({
     path: "/api/knowledge/google-drive/folders",
     handler: async (req, res) => {
@@ -127,19 +139,56 @@ export function registerKnowledgeRoutes(api: OpenClawPluginApi) {
           return;
         }
 
-        const query = `mimeType='application/vnd.google-apps.folder' and trashed=false and 'root' in parents`;
+        const url = new URL(req.url!, "http://localhost");
+        const parentId = url.searchParams.get("parentId");
+        const parent = parentId || "root";
+
+        const query = `mimeType='application/vnd.google-apps.folder' and trashed=false and '${parent}' in parents`;
         const gRes = await googleFetch(
-          `/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name)&pageSize=100`,
+          `/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name)&pageSize=100&orderBy=name`,
         );
         const data = (await gRes.json()) as { files?: Array<{ id: string; name: string }> };
         const folders = (data.files ?? []).map((f) => ({ id: f.id, name: f.name }));
-        sendJson(res, 200, { connected: true, folders });
+        sendJson(res, 200, { connected: true, folders, parentId: parentId || null });
       } catch (err) {
         sendJson(res, 500, {
           connected: true,
           folders: [],
           error: err instanceof Error ? err.message : String(err),
         });
+      }
+    },
+  });
+
+  // GET /api/knowledge/google-drive/folder-info?folderId=xxx — get folder name by ID
+  api.registerHttpRoute({
+    path: "/api/knowledge/google-drive/folder-info",
+    handler: async (req, res) => {
+      if (req.method !== "GET") {
+        res.writeHead(405);
+        res.end();
+        return;
+      }
+
+      try {
+        const token = await loadToken("google");
+        if (!token) {
+          sendJson(res, 404, { error: "Not connected" });
+          return;
+        }
+
+        const url = new URL(req.url!, "http://localhost");
+        const folderId = url.searchParams.get("folderId");
+        if (!folderId) {
+          sendJson(res, 400, { error: "Missing folderId" });
+          return;
+        }
+
+        const gRes = await googleFetch(`/drive/v3/files/${folderId}?fields=id,name,parents`);
+        const data = (await gRes.json()) as { id: string; name: string; parents?: string[] };
+        sendJson(res, 200, { id: data.id, name: data.name, parents: data.parents });
+      } catch (err) {
+        sendJson(res, 500, { error: err instanceof Error ? err.message : String(err) });
       }
     },
   });
@@ -242,9 +291,7 @@ export function registerKnowledgeRoutes(api: OpenClawPluginApi) {
       try {
         const body = await readBody(req);
         const { source } = JSON.parse(body || "{}") as { source?: string };
-        const cfg = loadConfig();
-        const knowledgeConfig =
-          ((cfg as Record<string, unknown>).knowledge as KnowledgeConfig) ?? {};
+        const knowledgeConfig = (await loadKnowledgeConfig()) as KnowledgeConfig;
         const knowledgeDir = resolveKnowledgeDir();
         const results: Record<string, unknown> = {};
 
@@ -288,14 +335,19 @@ export function registerKnowledgeRoutes(api: OpenClawPluginApi) {
 
       try {
         const body = await readBody(req);
-        const { template, rootName, target } = JSON.parse(body) as {
+        const { template, rootFolderId, rootName, target } = JSON.parse(body) as {
           template: "personal" | "company";
-          rootName: string;
+          rootFolderId?: string;
+          rootName?: string;
           target: "google-drive" | "dropbox";
         };
 
-        if (!rootName || !target) {
-          sendJson(res, 400, { error: "Missing rootName or target" });
+        if (!target) {
+          sendJson(res, 400, { error: "Missing target" });
+          return;
+        }
+        if (!rootFolderId && !rootName) {
+          sendJson(res, 400, { error: "Missing rootFolderId or rootName" });
           return;
         }
 
@@ -323,26 +375,9 @@ export function registerKnowledgeRoutes(api: OpenClawPluginApi) {
           entries = await loadCompanyTemplateEntries();
         }
 
-        const result = await createStructureOnGoogleDrive(rootName, entries);
-
-        // Auto-add root folder to knowledge sync config
-        if (result.folderId) {
-          try {
-            const snapshot = readConfigFileSnapshot();
-            const current = snapshot ? JSON.parse(snapshot) : {};
-            if (!current.knowledge) current.knowledge = {};
-            if (!current.knowledge["google-drive"]) {
-              current.knowledge["google-drive"] = { enabled: true, folders: [] };
-            }
-            const folders: string[] = current.knowledge["google-drive"].folders ?? [];
-            if (!folders.includes(rootName)) {
-              folders.push(rootName);
-              current.knowledge["google-drive"].folders = folders;
-              current.knowledge["google-drive"].enabled = true;
-              writeConfigFile(JSON.stringify(current, null, 2));
-            }
-          } catch {}
-        }
+        // If rootFolderId is provided, create entries directly under it.
+        // Otherwise fall back to creating/finding a root by name.
+        const result = await createStructureOnGoogleDrive(rootName ?? "", entries, rootFolderId);
 
         sendJson(res, 200, {
           ok: true,
@@ -368,9 +403,9 @@ export function registerKnowledgeRoutes(api: OpenClawPluginApi) {
 
       try {
         const body = await readBody(req);
-        const { target, rootName } = JSON.parse(body) as {
+        const { target, rootFolderId } = JSON.parse(body) as {
           target: "google-drive" | "dropbox";
-          rootName: string;
+          rootFolderId?: string;
         };
 
         if (target === "dropbox") {
@@ -397,16 +432,11 @@ export function registerKnowledgeRoutes(api: OpenClawPluginApi) {
           return;
         }
 
-        // Find root folder on Google Drive (or upload to Drive root)
-        let parentId: string | undefined;
-        if (rootName) {
-          const folderId = await findGoogleDriveFolder(rootName);
-          if (folderId) parentId = folderId;
-        }
+        // Use the configured rootFolder, or fall back to Drive root
+        const parentId = rootFolderId || "root";
 
         // Check if user-profile.md already exists in the target location
-        const parentRef = parentId ? `'${parentId}'` : "'root'";
-        const query = `name='user-profile.md' and ${parentRef} in parents and trashed=false`;
+        const query = `name='user-profile.md' and '${parentId}' in parents and trashed=false`;
         const searchRes = await googleFetch(
           `/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id)&pageSize=1`,
         );
@@ -425,11 +455,10 @@ export function registerKnowledgeRoutes(api: OpenClawPluginApi) {
           );
         } else {
           // Create new file
-          await uploadGoogleDriveFile("user-profile.md", profileContent, parentId || "root");
+          await uploadGoogleDriveFile("user-profile.md", profileContent, parentId);
         }
 
-        const filePath = rootName ? rootName + "/user-profile.md" : "user-profile.md";
-        sendJson(res, 200, { ok: true, path: filePath });
+        sendJson(res, 200, { ok: true, path: "user-profile.md" });
       } catch (err) {
         sendJson(res, 500, { ok: false, error: err instanceof Error ? err.message : String(err) });
       }

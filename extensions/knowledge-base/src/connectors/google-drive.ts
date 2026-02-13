@@ -89,17 +89,28 @@ export async function findGoogleDriveFolder(
  * Recursively create a directory structure with files on Google Drive.
  * entries is a flat list: { path: "dir/subdir/file.md", content?: "..." }
  * Entries without content are folder-only entries.
+ *
+ * If parentFolderId is provided, entries are created directly under that folder
+ * (no new root folder is created). Otherwise a root folder named rootName is
+ * created / found at Drive top-level.
  */
 export async function createStructureOnGoogleDrive(
   rootName: string,
   entries: Array<{ path: string; content?: string }>,
+  parentFolderId?: string,
 ): Promise<{ folderId: string; created: { folders: number; files: number }; errors: string[] }> {
   const result = { folderId: "", created: { folders: 0, files: 0 }, errors: [] as string[] };
 
-  // Create or find root folder
-  let rootId = await findGoogleDriveFolder(rootName);
-  if (!rootId) {
-    rootId = await createGoogleDriveFolder(rootName);
+  let rootId: string;
+  if (parentFolderId) {
+    // Use the caller-supplied folder directly
+    rootId = parentFolderId;
+  } else {
+    // Create or find root folder at Drive top-level
+    rootId = (await findGoogleDriveFolder(rootName)) ?? (await createGoogleDriveFolder(rootName));
+    if (!rootId) {
+      rootId = await createGoogleDriveFolder(rootName);
+    }
     result.created.folders++;
   }
   result.folderId = rootId;
@@ -177,8 +188,15 @@ type DriveListResponse = {
  */
 async function listFiles(config: GoogleDriveKnowledgeConfig): Promise<DriveFile[]> {
   const allFiles: DriveFile[] = [];
-  const folders = config.folders ?? [];
+  const folderIds: string[] = [];
 
+  // If rootFolder is set, use it directly
+  if (config.rootFolder?.id) {
+    folderIds.push(config.rootFolder.id);
+  }
+
+  // Also check legacy folders config
+  const folders = config.folders ?? [];
   for (const folder of folders) {
     const folderQuery = `name = '${folder.replace(/^\//, "")}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`;
     const folderRes = await googleFetch(
@@ -186,12 +204,15 @@ async function listFiles(config: GoogleDriveKnowledgeConfig): Promise<DriveFile[
     );
     const folderData = (await folderRes.json()) as DriveListResponse;
     const folderId = folderData.files?.[0]?.id;
-    if (!folderId) continue;
+    if (folderId) folderIds.push(folderId);
+  }
 
+  const fileTypes = config.fileTypes ?? ["pdf", "docx", "md", "txt"];
+
+  for (const folderId of folderIds) {
     let pageToken: string | undefined;
     do {
       const query = `'${folderId}' in parents and trashed = false`;
-      const fileTypes = config.fileTypes ?? ["pdf", "docx", "md", "txt"];
       let url = `/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name,mimeType,modifiedTime,size),nextPageToken&pageSize=100`;
       if (pageToken) url += `&pageToken=${pageToken}`;
 

@@ -30,6 +30,7 @@ export type KnowledgeSourceConfig = {
 
 export type GoogleDriveKnowledgeConfig = KnowledgeSourceConfig & {
   folders?: string[];
+  rootFolder?: { id: string; name: string };
   fileTypes?: string[];
   maxFileSize?: string;
 };

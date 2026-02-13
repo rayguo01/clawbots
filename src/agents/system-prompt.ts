@@ -578,6 +578,19 @@ export function buildAgentSystemPrompt(params: {
         "If SOUL.md is present, embody its persona and tone. Avoid stiff, generic replies; follow its guidance unless higher-priority instructions override it.",
       );
     }
+    const hasUserProfile = contextFiles.some((file) => {
+      const normalizedPath = file.path.trim().replace(/\\/g, "/");
+      const baseName = normalizedPath.split("/").pop() ?? normalizedPath;
+      return baseName.toLowerCase() === "user-profile.md";
+    });
+    if (hasUserProfile) {
+      lines.push(
+        "If user-profile.md is present, use it to personalize your responses. " +
+          "Watch for new personal information during conversation — when you discover something meaningful " +
+          "(name, role, goals, preferences, life changes), call update_user_profile to record it. " +
+          "Do not call it for trivial or transient info. Limit to 2-3 calls per conversation.",
+      );
+    }
     lines.push("");
     for (const file of contextFiles) {
       lines.push(`## ${file.path}`, "", file.content, "");

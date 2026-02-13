@@ -140,12 +140,14 @@ export async function createStructureOnGoogleDrive(
           await ensureFolder(entry.path);
         }
       } else {
-        const parentPath = entry.path.substring(0, lastSlash);
-        const fileName = entry.path.substring(lastSlash + 1);
-        const parentId = await ensureFolder(parentPath);
         if (entry.content !== undefined) {
+          const parentPath = entry.path.substring(0, lastSlash);
+          const fileName = entry.path.substring(lastSlash + 1);
+          const parentId = await ensureFolder(parentPath);
           await uploadGoogleDriveFile(fileName, entry.content, parentId);
           result.created.files++;
+        } else {
+          await ensureFolder(entry.path);
         }
       }
     } catch (err) {

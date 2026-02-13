@@ -4,20 +4,20 @@ import {
   FALLBACK_TWEET_FEATURE_SWITCHES,
   FALLBACK_TWEET_FIELD_TOGGLES,
 } from "./constants.js";
-import { buildFeatureMap, buildFieldToggleMap, xGraphqlPost } from "./http.js";
-
-async function resolveCreateTweetQueryId(): Promise<string> {
-  // CreateTweet mutation uses a different queryId; use fallback for now.
-  // The exact queryId can change but the fallback works reliably.
-  return FALLBACK_CREATE_TWEET_QUERY_ID;
-}
+import { buildFeatureMap, buildFieldToggleMap, resolveQueryInfo, xGraphqlPost } from "./http.js";
 
 export async function postTweet(
   text: string,
   cookieMap: CookieMap,
   replyToId?: string,
 ): Promise<{ tweet_id: string; text: string }> {
-  const queryId = await resolveCreateTweetQueryId();
+  const queryInfo = await resolveQueryInfo(
+    "CreateTweet",
+    /unused/,
+    FALLBACK_CREATE_TWEET_QUERY_ID,
+    FALLBACK_TWEET_FEATURE_SWITCHES,
+    FALLBACK_TWEET_FIELD_TOGGLES,
+  );
 
   const variables: Record<string, unknown> = {
     tweet_text: text,
@@ -33,11 +33,11 @@ export async function postTweet(
     };
   }
 
-  const features = buildFeatureMap("", FALLBACK_TWEET_FEATURE_SWITCHES);
-  const fieldToggles = buildFieldToggleMap(FALLBACK_TWEET_FIELD_TOGGLES);
+  const features = buildFeatureMap(queryInfo.html, queryInfo.featureSwitches);
+  const fieldToggles = buildFieldToggleMap(queryInfo.fieldToggles);
 
   const result = (await xGraphqlPost(
-    queryId,
+    queryInfo.queryId,
     "CreateTweet",
     variables,
     features,

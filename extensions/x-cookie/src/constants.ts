@@ -7,13 +7,14 @@ export const DEFAULT_USER_AGENT =
 export const X_COOKIE_NAMES = ["auth_token", "ct0", "gt", "twid"] as const;
 export const X_REQUIRED_COOKIES = ["auth_token", "ct0"] as const;
 
-// Fallback query IDs (updated from x.com JS bundles)
-export const FALLBACK_TWEET_QUERY_ID = "HJ9lpOL-ZlOk5CkCw0JW6Q";
-export const FALLBACK_TWEET_DETAIL_QUERY_ID = "_8aYOgEDz35BrBcBal1-_w";
-export const FALLBACK_CREATE_TWEET_QUERY_ID = "znCbFB2GCR83bIqAJHFBGw";
-export const FALLBACK_USER_TWEETS_QUERY_ID = "E3opETHurmVJflFsUBVuUQ";
-export const FALLBACK_HOME_TIMELINE_QUERY_ID = "HJFjzBgCs16TqxewQOeLNg";
-export const FALLBACK_SEARCH_QUERY_ID = "gkjsKepM6gl_HmFWoWKfgg";
+// Fallback query IDs (updated 2026-02-13 from x.com JS bundles)
+export const FALLBACK_TWEET_QUERY_ID = "d6YKjvQ920F-D4Y1PruO-A";
+export const FALLBACK_TWEET_DETAIL_QUERY_ID = "ooUbmy0T2DmvwfjgARktiQ";
+export const FALLBACK_CREATE_TWEET_QUERY_ID = "Ah3G_byjEDs_HSlgU0PyZw";
+export const FALLBACK_USER_TWEETS_QUERY_ID = "eApPT8jppbYXlweF_ByTyA";
+export const FALLBACK_HOME_TIMELINE_QUERY_ID = "y_gEr8-rsIu-XEOVAkh00A";
+export const FALLBACK_SEARCH_QUERY_ID = "cGK-Qeg1XJc2sZ6kgQw_Iw";
+export const FALLBACK_USER_BY_SCREEN_NAME_QUERY_ID = "AWbeRIdkLtqTRN7yL_H8yw";
 
 export const FALLBACK_TWEET_FEATURE_SWITCHES = [
   "creator_subscriptions_tweet_preview_api_enabled",
@@ -136,3 +137,15 @@ export const FALLBACK_TWEET_DETAIL_FIELD_TOGGLES = [
   "withGrokAnalyze",
   "withDisallowedReplyControls",
 ];
+
+// X Article (long-form) fallbacks
+export const FALLBACK_ARTICLE_QUERY_ID = "id8pHQbQi7eZ6P9mA1th1Q";
+export const FALLBACK_ARTICLE_FEATURE_SWITCHES = [
+  "profile_label_improvements_pcf_label_in_post_enabled",
+  "responsive_web_profile_redirect_enabled",
+  "rweb_tipjar_consumption_enabled",
+  "verified_phone_label_enabled",
+  "responsive_web_graphql_skip_user_profile_image_extensions_enabled",
+  "responsive_web_graphql_timeline_navigation_enabled",
+];
+export const FALLBACK_ARTICLE_FIELD_TOGGLES = ["withPayments", "withAuxiliaryUserLabels"];

@@ -2,6 +2,9 @@ import type { CookieMap, QueryInfo } from "./types.js";
 import {
   DEFAULT_BEARER_TOKEN,
   DEFAULT_USER_AGENT,
+  FALLBACK_ARTICLE_FEATURE_SWITCHES,
+  FALLBACK_ARTICLE_FIELD_TOGGLES,
+  FALLBACK_ARTICLE_QUERY_ID,
   FALLBACK_TWEET_DETAIL_FEATURE_DEFAULTS,
   FALLBACK_TWEET_DETAIL_FEATURE_SWITCHES,
   FALLBACK_TWEET_DETAIL_FIELD_TOGGLES,
@@ -12,7 +15,11 @@ import {
 } from "./constants.js";
 import { buildCookieHeader } from "./cookies.js";
 
-let cachedHomeHtml: { userAgent: string; html: string } | null = null;
+// Cache HTML, main JS bundle, and ClientTransaction instance (expires after 30 min)
+let cachedHomeHtml: { userAgent: string; html: string; ts: number } | null = null;
+let cachedMainJs: { hash: string; js: string; ts: number } | null = null;
+let cachedTransactionGenerator: { ts: number; ct: any } | null = null;
+const CACHE_TTL_MS = 30 * 60 * 1000;
 
 async function fetchText(url: string, init?: RequestInit): Promise<string> {
   const response = await fetch(url, init);
@@ -24,10 +31,46 @@ async function fetchText(url: string, init?: RequestInit): Promise<string> {
 }
 
 async function fetchHomeHtml(userAgent: string): Promise<string> {
-  if (cachedHomeHtml?.userAgent === userAgent) return cachedHomeHtml.html;
+  const now = Date.now();
+  if (cachedHomeHtml?.userAgent === userAgent && now - cachedHomeHtml.ts < CACHE_TTL_MS)
+    return cachedHomeHtml.html;
   const html = await fetchText("https://x.com", { headers: { "user-agent": userAgent } });
-  cachedHomeHtml = { userAgent, html };
+  cachedHomeHtml = { userAgent, html, ts: now };
   return html;
+}
+
+async function fetchMainJs(userAgent: string): Promise<string> {
+  const html = await fetchHomeHtml(userAgent);
+  const mainMatch = html.match(/main\.([a-z0-9]+)\.js/);
+  if (!mainMatch) return "";
+
+  const hash = mainMatch[1];
+  const now = Date.now();
+  if (cachedMainJs?.hash === hash && now - cachedMainJs.ts < CACHE_TTL_MS) return cachedMainJs.js;
+
+  const url = `https://abs.twimg.com/responsive-web/client-web/main.${hash}.js`;
+  const js = await fetchText(url, { headers: { "user-agent": userAgent } });
+  cachedMainJs = { hash, js, ts: now };
+  return js;
+}
+
+async function generateTransactionId(method: string, apiPath: string): Promise<string | undefined> {
+  const userAgent = process.env.X_USER_AGENT?.trim() || DEFAULT_USER_AGENT;
+  try {
+    const now = Date.now();
+    if (!cachedTransactionGenerator || now - cachedTransactionGenerator.ts > CACHE_TTL_MS) {
+      const html = await fetchHomeHtml(userAgent);
+      // X no longer exposes ondemand.s.*.js in HTML; use main.js as the key source
+      const mainJs = await fetchMainJs(userAgent);
+      if (!mainJs) return undefined;
+      const { ClientTransaction } = await import("xclienttransaction");
+      const ct = new ClientTransaction(html, mainJs);
+      cachedTransactionGenerator = { ts: now, ct };
+    }
+    return cachedTransactionGenerator.ct.generateTransactionId(method, apiPath);
+  } catch {
+    return undefined;
+  }
 }
 
 function parseStringList(raw: string | undefined): string[] {
@@ -90,10 +133,20 @@ export function buildRequestHeaders(cookieMap: CookieMap): Record<string, string
   const headers: Record<string, string> = {
     authorization: bearerToken,
     "user-agent": userAgent,
-    accept: "application/json",
+    accept: "*/*",
+    "accept-language": "en-US,en;q=0.9",
+    "accept-encoding": "gzip, deflate, br",
+    "content-type": "application/json",
+    origin: "https://x.com",
+    referer: "https://x.com/",
+    "sec-ch-ua": '"Chromium";v="130", "Google Chrome";v="130", "Not?A_Brand";v="99"',
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": '"macOS"',
+    "sec-fetch-dest": "empty",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "same-origin",
     "x-twitter-active-user": "yes",
     "x-twitter-client-language": "en",
-    "accept-language": "en",
   };
   if (cookieMap.auth_token) headers["x-twitter-auth-type"] = "OAuth2Session";
   const cookieHeader = buildCookieHeader(cookieMap);
@@ -102,9 +155,9 @@ export function buildRequestHeaders(cookieMap: CookieMap): Record<string, string
   return headers;
 }
 
-async function resolveQueryInfo(
+export async function resolveQueryInfo(
   operationName: string,
-  bundlePattern: RegExp,
+  _bundlePattern: RegExp,
   fallbackQueryId: string,
   fallbackFeatures: string[],
   fallbackToggles: string[],
@@ -112,26 +165,14 @@ async function resolveQueryInfo(
   const userAgent = process.env.X_USER_AGENT?.trim() || DEFAULT_USER_AGENT;
   const html = await fetchHomeHtml(userAgent);
 
-  // Try to find the chunk containing this operation
-  const patterns = [/api:"([a-zA-Z0-9_-]+)"/, /main\.([a-z0-9]+)\.js/];
-
-  for (const pattern of patterns) {
-    const hashMatch = html.match(pattern);
-    if (!hashMatch) continue;
-
-    const hash = hashMatch[1];
-    const prefix = pattern === patterns[0] ? "api" : "main";
-    const chunkUrl = `https://abs.twimg.com/responsive-web/client-web/${prefix}.${hash}${prefix === "api" ? "a" : ""}.js`;
-
-    try {
-      const chunk = await fetchText(chunkUrl, { headers: { "user-agent": userAgent } });
-      const qidMatch = chunk.match(
-        new RegExp(`queryId:"([^"]+)",operationName:"${operationName}"`),
-      );
-      const featMatch = chunk.match(
+  try {
+    const js = await fetchMainJs(userAgent);
+    if (js) {
+      const qidMatch = js.match(new RegExp(`queryId:"([^"]+)",operationName:"${operationName}"`));
+      const featMatch = js.match(
         new RegExp(`operationName:"${operationName}"[\\s\\S]*?featureSwitches:\\[(.*?)\\]`),
       );
-      const toggleMatch = chunk.match(
+      const toggleMatch = js.match(
         new RegExp(`operationName:"${operationName}"[\\s\\S]*?fieldToggles:\\[(.*?)\\]`),
       );
 
@@ -145,9 +186,9 @@ async function resolveQueryInfo(
           html,
         };
       }
-    } catch {
-      // Try next pattern
     }
+  } catch {
+    // Fall through to fallback
   }
 
   return {
@@ -156,6 +197,24 @@ async function resolveQueryInfo(
     fieldToggles: fallbackToggles,
     html,
   };
+}
+
+/** Resolve a single queryId for an operation, with fallback. */
+export async function resolveQueryId(
+  operationName: string,
+  fallbackQueryId: string,
+): Promise<string> {
+  const userAgent = process.env.X_USER_AGENT?.trim() || DEFAULT_USER_AGENT;
+  try {
+    const js = await fetchMainJs(userAgent);
+    if (js) {
+      const m = js.match(new RegExp(`queryId:"([^"]+)",operationName:"${operationName}"`));
+      if (m) return m[1];
+    }
+  } catch {
+    // Fall through
+  }
+  return fallbackQueryId;
 }
 
 export async function resolveTweetQueryInfo(): Promise<QueryInfo> {
@@ -186,16 +245,78 @@ export async function xGraphqlGet(
   fieldToggles: Record<string, boolean>,
   cookieMap: CookieMap,
 ): Promise<unknown> {
-  const url = new URL(`https://x.com/i/api/graphql/${queryId}/${operationName}`);
+  const apiPath = `/i/api/graphql/${queryId}/${operationName}`;
+  const url = new URL(`https://x.com${apiPath}`);
   url.searchParams.set("variables", JSON.stringify(variables));
   if (Object.keys(features).length > 0) url.searchParams.set("features", JSON.stringify(features));
   if (Object.keys(fieldToggles).length > 0)
     url.searchParams.set("fieldToggles", JSON.stringify(fieldToggles));
 
-  const response = await fetch(url.toString(), { headers: buildRequestHeaders(cookieMap) });
+  const headers = buildRequestHeaders(cookieMap);
+  const txId = await generateTransactionId("GET", apiPath);
+  if (txId) headers["x-client-transaction-id"] = txId;
+
+  const response = await fetch(url.toString(), { headers });
   const text = await response.text();
   if (!response.ok) throw new Error(`X API error (${response.status}): ${text.slice(0, 400)}`);
   return JSON.parse(text);
+}
+
+export async function resolveArticleQueryInfo(): Promise<QueryInfo> {
+  const userAgent = process.env.X_USER_AGENT?.trim() || DEFAULT_USER_AGENT;
+  const html = await fetchHomeHtml(userAgent);
+
+  try {
+    // Try to find the TwitterArticles bundle hash
+    const bundleMatch = html.match(/"bundle\.TwitterArticles":"([a-z0-9]+)"/);
+    if (bundleMatch) {
+      const bundleHash = bundleMatch[1];
+      const chunkUrl = `https://abs.twimg.com/responsive-web/client-web/bundle.TwitterArticles.${bundleHash}a.js`;
+      const chunk = await fetchText(chunkUrl, { headers: { "user-agent": userAgent } });
+
+      const qidMatch = chunk.match(/queryId:"([^"]+)",operationName:"ArticleEntityResultByRestId"/);
+      const featMatch = chunk.match(
+        /operationName:"ArticleEntityResultByRestId"[\s\S]*?featureSwitches:\[(.*?)\]/,
+      );
+      const toggleMatch = chunk.match(
+        /operationName:"ArticleEntityResultByRestId"[\s\S]*?fieldToggles:\[(.*?)\]/,
+      );
+
+      if (qidMatch) {
+        const features = parseStringList(featMatch?.[1]);
+        const toggles = parseStringList(toggleMatch?.[1]);
+        return {
+          queryId: qidMatch[1],
+          featureSwitches: features.length > 0 ? features : FALLBACK_ARTICLE_FEATURE_SWITCHES,
+          fieldToggles: toggles.length > 0 ? toggles : FALLBACK_ARTICLE_FIELD_TOGGLES,
+          html,
+        };
+      }
+    }
+
+    // Fallback: try main.js
+    const js = await fetchMainJs(userAgent);
+    if (js) {
+      const m = js.match(/queryId:"([^"]+)",operationName:"ArticleEntityResultByRestId"/);
+      if (m) {
+        return {
+          queryId: m[1],
+          featureSwitches: FALLBACK_ARTICLE_FEATURE_SWITCHES,
+          fieldToggles: FALLBACK_ARTICLE_FIELD_TOGGLES,
+          html,
+        };
+      }
+    }
+  } catch {
+    // Fall through to fallback
+  }
+
+  return {
+    queryId: FALLBACK_ARTICLE_QUERY_ID,
+    featureSwitches: FALLBACK_ARTICLE_FEATURE_SWITCHES,
+    fieldToggles: FALLBACK_ARTICLE_FIELD_TOGGLES,
+    html,
+  };
 }
 
 export async function xGraphqlPost(
@@ -206,9 +327,11 @@ export async function xGraphqlPost(
   fieldToggles: Record<string, boolean>,
   cookieMap: CookieMap,
 ): Promise<unknown> {
-  const url = `https://x.com/i/api/graphql/${queryId}/${operationName}`;
+  const apiPath = `/i/api/graphql/${queryId}/${operationName}`;
+  const url = `https://x.com${apiPath}`;
   const headers = buildRequestHeaders(cookieMap);
-  headers["content-type"] = "application/json";
+  const txId = await generateTransactionId("POST", apiPath);
+  if (txId) headers["x-client-transaction-id"] = txId;
 
   const body = JSON.stringify({ variables, features, fieldToggles, queryId });
   const response = await fetch(url, { method: "POST", headers, body });

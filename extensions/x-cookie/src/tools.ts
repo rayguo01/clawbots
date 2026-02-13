@@ -3,7 +3,7 @@ import { Type } from "@sinclair/typebox";
 import { jsonResult } from "openclaw/plugin-sdk";
 import { requireXCookies } from "./cookies.js";
 import { postTweet, postThread } from "./post.js";
-import { getTweet, getUserTweets, getTimeline } from "./read.js";
+import { getTweet, getArticle, getUserTweets, getTimeline } from "./read.js";
 import { searchTweets } from "./search.js";
 
 function extractTweetId(input: string): string {
@@ -11,7 +11,18 @@ function extractTweetId(input: string): string {
   const urlMatch = input.match(/(?:twitter\.com|x\.com)\/\w+\/status\/(\d+)/);
   if (urlMatch) return urlMatch[1];
   if (/^\d+$/.test(input.trim())) return input.trim();
+  // Detect article URL and give a helpful error
+  if (/(?:twitter\.com|x\.com)\/i\/article\//.test(input)) {
+    throw new Error(`This is an X Article URL. Please use the x_get_article tool instead.`);
+  }
   throw new Error(`Invalid tweet ID or URL: ${input}`);
+}
+
+function extractArticleId(input: string): string {
+  const urlMatch = input.match(/(?:twitter\.com|x\.com)\/i\/article\/(\d+)/);
+  if (urlMatch) return urlMatch[1];
+  if (/^\d+$/.test(input.trim())) return input.trim();
+  throw new Error(`Invalid article ID or URL: ${input}`);
 }
 
 export function createXTools(): AnyAgentTool[] {
@@ -19,6 +30,7 @@ export function createXTools(): AnyAgentTool[] {
     createPostTweetTool(),
     createPostThreadTool(),
     createGetTweetTool(),
+    createGetArticleTool(),
     createGetUserTweetsTool(),
     createGetTimelineTool(),
     createSearchTool(),
@@ -85,6 +97,28 @@ function createGetTweetTool(): AnyAgentTool {
       const id = extractTweetId(tweet_id);
       const cookies = await requireXCookies();
       const result = await getTweet(id, cookies);
+      return jsonResult(result);
+    },
+  };
+}
+
+function createGetArticleTool(): AnyAgentTool {
+  return {
+    label: "X: Get Article",
+    name: "x_get_article",
+    description:
+      "Get an X Article (long-form post) content. Use this for URLs like https://x.com/i/article/<id>. Returns the article title, full text, author info, and cover image.",
+    parameters: Type.Object({
+      article_id: Type.String({
+        description:
+          "Article ID (e.g. '1234567890') or full URL (e.g. 'https://x.com/i/article/1234567890').",
+      }),
+    }),
+    execute: async (_toolCallId, args) => {
+      const { article_id } = args as { article_id: string };
+      const id = extractArticleId(article_id);
+      const cookies = await requireXCookies();
+      const result = await getArticle(id, cookies);
       return jsonResult(result);
     },
   };

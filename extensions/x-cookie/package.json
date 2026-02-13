@@ -3,6 +3,9 @@
   "version": "2026.2.13",
   "description": "X (Twitter) integration via cookie authentication - post, read, and search tweets",
   "type": "module",
+  "dependencies": {
+    "xclienttransaction": "^0.0.2"
+  },
   "devDependencies": {
     "nanobots": "workspace:*"
   },

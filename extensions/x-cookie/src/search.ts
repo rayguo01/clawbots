@@ -4,7 +4,7 @@ import {
   FALLBACK_TWEET_FIELD_TOGGLES,
   FALLBACK_SEARCH_QUERY_ID,
 } from "./constants.js";
-import { buildFeatureMap, buildFieldToggleMap, xGraphqlGet } from "./http.js";
+import { buildFeatureMap, buildFieldToggleMap, resolveQueryInfo, xGraphqlGet } from "./http.js";
 
 function unwrapTweetResult(result: any): any {
   if (!result) return null;
@@ -34,11 +34,18 @@ export async function searchTweets(
   count: number,
   cookieMap: CookieMap,
 ): Promise<{ query: string; tweets: any[] }> {
-  const features = buildFeatureMap("", FALLBACK_TWEET_FEATURE_SWITCHES);
-  const fieldToggles = buildFieldToggleMap(FALLBACK_TWEET_FIELD_TOGGLES);
+  const queryInfo = await resolveQueryInfo(
+    "SearchTimeline",
+    /unused/,
+    FALLBACK_SEARCH_QUERY_ID,
+    FALLBACK_TWEET_FEATURE_SWITCHES,
+    FALLBACK_TWEET_FIELD_TOGGLES,
+  );
+  const features = buildFeatureMap(queryInfo.html, queryInfo.featureSwitches);
+  const fieldToggles = buildFieldToggleMap(queryInfo.fieldToggles);
 
   const payload = await xGraphqlGet(
-    FALLBACK_SEARCH_QUERY_ID,
+    queryInfo.queryId,
     "SearchTimeline",
     {
       rawQuery: query,

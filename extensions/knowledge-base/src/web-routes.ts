@@ -14,7 +14,12 @@ import type { KnowledgeConfig } from "./types.js";
 import { googleFetch } from "../../google-services/src/google-api.js";
 import { notionFetch } from "../../notion/src/notion-api.js";
 import { loadToken } from "../../web-setup/src/oauth/store.js";
-import { syncGoogleDrive, createStructureOnGoogleDrive } from "./connectors/google-drive.js";
+import {
+  syncGoogleDrive,
+  createStructureOnGoogleDrive,
+  findGoogleDriveFolder,
+  uploadGoogleDriveFile,
+} from "./connectors/google-drive.js";
 import { syncNotion } from "./connectors/notion.js";
 import { loadSyncState } from "./sync-state.js";
 
@@ -345,6 +350,86 @@ export function registerKnowledgeRoutes(api: OpenClawPluginApi) {
           created: result.created,
           errors: result.errors,
         });
+      } catch (err) {
+        sendJson(res, 500, { ok: false, error: err instanceof Error ? err.message : String(err) });
+      }
+    },
+  });
+
+  // POST /api/knowledge/sync-profile — upload user-profile.md to cloud
+  api.registerHttpRoute({
+    path: "/api/knowledge/sync-profile",
+    handler: async (req, res) => {
+      if (req.method !== "POST") {
+        res.writeHead(405);
+        res.end();
+        return;
+      }
+
+      try {
+        const body = await readBody(req);
+        const { target, rootName } = JSON.parse(body) as {
+          target: "google-drive" | "dropbox";
+          rootName: string;
+        };
+
+        if (target === "dropbox") {
+          sendJson(res, 501, { error: "Dropbox support coming soon" });
+          return;
+        }
+
+        // Read user-profile.md from workspace
+        const cfg = loadConfig();
+        const agentId = resolveDefaultAgentId(cfg);
+        const workspaceDir = resolveAgentWorkspaceDir(cfg, agentId);
+        const profilePath = path.join(workspaceDir, "user-profile.md");
+
+        let profileContent: string;
+        try {
+          profileContent = await fs.readFile(profilePath, "utf-8");
+        } catch {
+          sendJson(res, 404, { ok: false, error: "user-profile.md not found" });
+          return;
+        }
+
+        if (!profileContent.trim()) {
+          sendJson(res, 400, { ok: false, error: "user-profile.md is empty" });
+          return;
+        }
+
+        // Find root folder on Google Drive (or upload to Drive root)
+        let parentId: string | undefined;
+        if (rootName) {
+          const folderId = await findGoogleDriveFolder(rootName);
+          if (folderId) parentId = folderId;
+        }
+
+        // Check if user-profile.md already exists in the target location
+        const parentRef = parentId ? `'${parentId}'` : "'root'";
+        const query = `name='user-profile.md' and ${parentRef} in parents and trashed=false`;
+        const searchRes = await googleFetch(
+          `/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id)&pageSize=1`,
+        );
+        const searchData = (await searchRes.json()) as { files?: Array<{ id: string }> };
+        const existingId = searchData.files?.[0]?.id;
+
+        if (existingId) {
+          // Update existing file
+          await googleFetch(
+            `https://www.googleapis.com/upload/drive/v3/files/${existingId}?uploadType=media`,
+            {
+              method: "PATCH",
+              headers: { "Content-Type": "text/markdown; charset=UTF-8" },
+              body: profileContent,
+            },
+          );
+        } else {
+          // Create new file
+          await uploadGoogleDriveFile("user-profile.md", profileContent, parentId || "root");
+        }
+
+        const filePath = rootName ? rootName + "/user-profile.md" : "user-profile.md";
+        sendJson(res, 200, { ok: true, path: filePath });
       } catch (err) {
         sendJson(res, 500, { ok: false, error: err instanceof Error ? err.message : String(err) });
       }

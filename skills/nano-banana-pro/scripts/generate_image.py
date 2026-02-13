@@ -21,6 +21,18 @@ import os
 import sys
 from pathlib import Path
 
+# Guard: ensure this script is run via `uv run`, not `python3` directly.
+try:
+    from google import genai  # noqa: F401
+except ImportError:
+    print(
+        "Error: Required dependencies not found.\n"
+        "This script MUST be run via `uv run`, not `python3` directly.\n"
+        "Example: uv run " + __file__ + ' --prompt "..." --filename "output.png"',
+        file=sys.stderr,
+    )
+    sys.exit(1)
+
 
 def get_api_key(provided_key: str | None) -> str | None:
     """Get API key from argument first, then environment."""
@@ -72,8 +84,6 @@ def main():
         print("  2. Set GEMINI_API_KEY environment variable", file=sys.stderr)
         sys.exit(1)
 
-    # Import here after checking API key to avoid slow import on error
-    from google import genai
     from google.genai import types
     from PIL import Image as PILImage
 

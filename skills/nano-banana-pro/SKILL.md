@@ -27,6 +27,8 @@ metadata:
 
 Use the bundled script to generate or edit images.
 
+**CRITICAL: You MUST use `uv run` to execute the script. NEVER use `python3` directly — the dependencies will not be available.**
+
 Generate
 
 ```bash
@@ -48,14 +50,16 @@ uv run {baseDir}/scripts/generate_image.py --prompt "combine these into one scen
 Sending the image
 
 After running the script, the stdout will contain a line like `IMAGE_PATH: /path/to/output.png`.
-**You MUST use the message tool** to send the image back to the user:
+**You MUST use the message tool** to send the image back to the user.
+**IMPORTANT: When multiple channels (telegram, whatsapp) are configured, you MUST include the `channel` parameter matching the channel this conversation is on.**
 
 ```
-message(action="send", filePath="/path/to/output.png", message="your caption")
+message(action="send", channel="telegram", filePath="/path/to/output.png", message="your caption")
 ```
 
 Do NOT include the file path as text in your reply. Do NOT rely on MEDIA: tokens.
 Always use the message tool with `filePath` to deliver images.
+If the image generation or send fails, do NOT retry the entire generation. Report the error to the user instead.
 
 API key
 
@@ -67,3 +71,4 @@ Notes
 - Resolutions: `1K` (default), `2K`, `4K`.
 - Use timestamps in filenames: `yyyy-mm-dd-hh-mm-ss-name.png`.
 - Do not read the image back; report the saved path only.
+- **NEVER use `python3` or `pip install` directly. ALWAYS use `uv run`.**

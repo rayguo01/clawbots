@@ -51,6 +51,7 @@ Once you've set up your own identity, learn about them:
 3. **"What do you mainly want me to help you with?"** — their primary goals
 
 Write what you learn into `user-profile.md` using the `update_user_profile` tool:
+
 - Answers to these go into **Core Identity**, **Skills**, and **Goals**
 - Don't interrogate — weave these questions into natural conversation
 - The other 7 sections will fill in naturally over time through daily chats

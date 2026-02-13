@@ -50,9 +50,7 @@ const UpdateUserProfileSchema = Type.Object({
   }),
 });
 
-export function createUserProfileTool(options: {
-  workspaceDir?: string;
-}): AnyAgentTool | null {
+export function createUserProfileTool(options: { workspaceDir?: string }): AnyAgentTool | null {
   const workspaceDir = options?.workspaceDir;
   if (!workspaceDir) return null;
 
@@ -117,9 +115,7 @@ export function createUserProfileTool(options: {
       let newSectionContent: string;
       switch (action) {
         case "add":
-          newSectionContent = cleanContent
-            ? `\n${cleanContent}\n${content}\n`
-            : `\n${content}\n`;
+          newSectionContent = cleanContent ? `\n${cleanContent}\n${content}\n` : `\n${content}\n`;
           break;
         case "update":
           newSectionContent = `\n${content}\n`;

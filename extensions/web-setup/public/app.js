@@ -155,6 +155,11 @@
       '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 0 0-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>',
     whatsapp:
       '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>',
+    building:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M8 10h.01"/><path d="M16 10h.01"/><path d="M8 14h.01"/><path d="M16 14h.01"/></svg>',
+    user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+    upload:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>',
   };
 
   // ===== 5. CATEGORIES =====
@@ -1619,6 +1624,84 @@
     },
   ];
 
+  var BEST_PRACTICES = [
+    {
+      id: "personal",
+      name: "个人文档目录",
+      desc: "推荐的个人知识库结构，让 AI 帮你系统化管理知识",
+      icon: "folder",
+      defaultRoot: "PersonalBrain",
+      tree: [
+        { path: "00_收件箱", desc: "快速捕获，AI 自动归类" },
+        { path: "10_日记", desc: "每日日志 (YYYY-MM-DD.md)" },
+        { path: "20_项目", desc: "活跃项目跟踪" },
+        { path: "30_研究", desc: "深度研究笔记" },
+        { path: "40_知识库", desc: "原子概念提取" },
+        { path: "50_资源", desc: "精选内容与参考" },
+        { path: "90_计划", desc: "执行方案" },
+        { path: "99_系统/归档", desc: "历史记录" },
+        { path: "99_系统/提示词", desc: "AI 人设" },
+        { path: "99_系统/模板", desc: "Markdown 模板" },
+      ],
+    },
+    {
+      id: "company",
+      name: "公司文档目录",
+      desc: "推荐的企业知识库结构，让 AI 成为你的全能商业助手",
+      icon: "building",
+      defaultRoot: "CompanyBrain",
+      tree: [
+        { path: "00-Index/Home.md", desc: "知识库首页" },
+        { path: "01-Company/公司简介.md", desc: "" },
+        { path: "01-Company/品牌规范.md", desc: "" },
+        { path: "01-Company/组织架构.md", desc: "" },
+        { path: "01-Company/人事/假期政策.md", desc: "" },
+        { path: "01-Company/人事/入职流程.md", desc: "" },
+        { path: "01-Company/人事/考勤制度.md", desc: "" },
+        { path: "01-Company/法务/合同审批流程.md", desc: "" },
+        { path: "01-Company/法务/用户协议模板.md", desc: "" },
+        { path: "01-Company/法务/隐私政策模板.md", desc: "" },
+        { path: "01-Company/财务/付款流程.md", desc: "" },
+        { path: "01-Company/财务/发票管理.md", desc: "" },
+        { path: "01-Company/财务/报销制度.md", desc: "" },
+        { path: "02-Products/MyProduct/_概览.md", desc: "" },
+        { path: "02-Products/MyProduct/01-核心定义/产品定位与推广策略.md", desc: "" },
+        { path: "02-Products/MyProduct/01-核心定义/功能清单.md", desc: "" },
+        { path: "02-Products/MyProduct/01-核心定义/定价策略.md", desc: "" },
+        { path: "02-Products/MyProduct/01-核心定义/目标市场.md", desc: "" },
+        { path: "02-Products/MyProduct/01-核心定义/竞品对比.md", desc: "" },
+        { path: "02-Products/MyProduct/02-客户/客户画像-学生.md", desc: "" },
+        { path: "02-Products/MyProduct/02-客户/客户画像-家长.md", desc: "" },
+        { path: "02-Products/MyProduct/02-客户/用户痛点.md", desc: "" },
+        { path: "02-Products/MyProduct/02-客户/用户需求分析报告.md", desc: "" },
+        { path: "02-Products/MyProduct/03-销售/成功案例.md", desc: "" },
+        { path: "02-Products/MyProduct/03-销售/渠道策略.md", desc: "" },
+        { path: "02-Products/MyProduct/03-销售/销售话术.md", desc: "" },
+        { path: "02-Products/MyProduct/04-市场/SEO策略.md", desc: "" },
+        { path: "02-Products/MyProduct/04-市场/主页文案.md", desc: "" },
+        { path: "02-Products/MyProduct/04-市场/品牌故事.md", desc: "" },
+        { path: "02-Products/MyProduct/04-市场/定价页文案.md", desc: "" },
+        { path: "02-Products/MyProduct/04-市场/宣传文案.md", desc: "" },
+        { path: "02-Products/MyProduct/04-市场/市场研究分析报告.md", desc: "" },
+        { path: "02-Products/MyProduct/04-市场/社交媒体.md", desc: "" },
+        { path: "02-Products/MyProduct/04-市场/社交媒体战略.md", desc: "" },
+        { path: "02-Products/MyProduct/04-市场/综合市场分析报告.md", desc: "" },
+        { path: "02-Products/MyProduct/05-技术/API文档.md", desc: "" },
+        { path: "02-Products/MyProduct/05-技术/技术架构.md", desc: "" },
+        { path: "02-Products/MyProduct/05-技术/技术说明.md", desc: "" },
+        { path: "02-Products/MyProduct/05-技术/版本记录.md", desc: "" },
+        { path: "02-Products/MyProduct/06-支持/FAQ.md", desc: "" },
+        { path: "02-Products/MyProduct/06-支持/使用教程.md", desc: "" },
+        { path: "02-Products/MyProduct/06-支持/故障排查.md", desc: "" },
+        { path: "Templates/Agent定义模板.md", desc: "" },
+        { path: "Templates/FAQ模板.md", desc: "" },
+        { path: "Templates/产品概览模板.md", desc: "" },
+        { path: "Templates/会议纪要模板.md", desc: "" },
+        { path: "Templates/客户画像模板.md", desc: "" },
+      ],
+    },
+  ];
+
   function renderKnowledgeCard(sourceMeta) {
     var sourceData = state.knowledge[sourceMeta.id];
     var connected = sourceData.connected;
@@ -1723,10 +1806,65 @@
     );
   }
 
+  function renderBestPracticeCard(bp) {
+    return (
+      '<div class="knowledge-card bp-card" data-bp="' +
+      bp.id +
+      '">' +
+      '<div class="knowledge-card-header">' +
+      '<div class="knowledge-card-icon icon-bp-' +
+      bp.id +
+      '">' +
+      (ICONS[bp.icon] || "") +
+      "</div>" +
+      '<div class="knowledge-card-info">' +
+      '<div class="knowledge-card-name">' +
+      escapeHtml(bp.name) +
+      "</div>" +
+      '<div class="knowledge-card-desc">' +
+      escapeHtml(bp.desc) +
+      "</div>" +
+      "</div>" +
+      '<div class="knowledge-card-right">' +
+      '<span class="bp-badge">推荐</span>' +
+      "</div>" +
+      "</div>" +
+      "</div>"
+    );
+  }
+
   function renderKnowledgePage() {
     var cards = KNOWLEDGE_SOURCES.map(function (source) {
       return renderKnowledgeCard(source);
     }).join("");
+
+    var bpCards = BEST_PRACTICES.map(function (bp) {
+      return renderBestPracticeCard(bp);
+    }).join("");
+
+    var anyConnected = state.knowledge.googleDrive.connected || state.knowledge.dropbox.connected;
+    var syncBtnDisabled = !anyConnected ? " disabled" : "";
+    var syncBtnTitle = !anyConnected ? "请先连接云服务" : "同步个人档案";
+
+    var profileSyncCard =
+      '<div class="knowledge-card bp-profile-card">' +
+      '<div class="knowledge-card-header">' +
+      '<div class="knowledge-card-icon icon-bp-profile">' +
+      ICONS.user +
+      "</div>" +
+      '<div class="knowledge-card-info">' +
+      '<div class="knowledge-card-name">同步个人档案到云端</div>' +
+      '<div class="knowledge-card-desc">将 AI 学习到的你的个人画像同步到云端知识库根目录</div>' +
+      "</div>" +
+      '<div class="knowledge-card-right">' +
+      '<button class="knowledge-sync-btn bp-sync-profile-btn"' +
+      syncBtnDisabled +
+      ' title="' +
+      syncBtnTitle +
+      '">同步</button>' +
+      "</div>" +
+      "</div>" +
+      "</div>";
 
     return (
       '<main class="main">' +
@@ -1740,8 +1878,207 @@
       cards +
       "</div>" +
       "</div>" +
+      '<div class="knowledge-section">' +
+      '<h3 class="knowledge-section-title">最佳实践</h3>' +
+      '<div class="knowledge-list">' +
+      bpCards +
+      "</div>" +
+      profileSyncCard +
+      "</div>" +
       "</main>"
     );
+  }
+
+  function renderBestPracticeModal(bp) {
+    var treeHtml = bp.tree
+      .map(function (item) {
+        var isFile = item.path.indexOf(".md") !== -1;
+        var icon = isFile ? ICONS.database : ICONS.folder;
+        var parts = item.path.split("/");
+        var indent = (parts.length - 1) * 20;
+        var name = parts[parts.length - 1];
+        var desc = item.desc
+          ? '<span class="bp-tree-desc">' + escapeHtml(item.desc) + "</span>"
+          : "";
+        return (
+          '<div class="bp-tree-item" style="padding-left:' +
+          indent +
+          'px">' +
+          '<span class="bp-tree-icon">' +
+          icon +
+          "</span>" +
+          '<span class="bp-tree-name">' +
+          escapeHtml(name) +
+          "</span>" +
+          desc +
+          "</div>"
+        );
+      })
+      .join("");
+
+    var targetOptions = "";
+    if (state.knowledge.googleDrive.connected) {
+      targetOptions += '<option value="google-drive">Google Drive</option>';
+    }
+    if (state.knowledge.dropbox.connected) {
+      targetOptions += '<option value="dropbox">Dropbox</option>';
+    }
+    var noTarget = !targetOptions;
+    if (noTarget) {
+      targetOptions = '<option value="">请先连接云服务</option>';
+    }
+
+    var descText =
+      bp.id === "personal"
+        ? "推荐的个人知识库目录结构，帮助你系统化地管理个人知识。AI 助手会自动将内容归类到对应目录中。"
+        : "推荐的企业知识库目录结构，覆盖公司信息、产品、销售、市场、技术、支持等完整维度。所有文件包含结构化模板。";
+
+    return (
+      '<div class="bp-modal-overlay" id="bpModal">' +
+      '<div class="bp-modal">' +
+      '<div class="bp-modal-header">' +
+      "<h2>" +
+      escapeHtml(bp.name) +
+      "</h2>" +
+      '<button class="bp-modal-close" id="bpModalClose">&times;</button>' +
+      "</div>" +
+      '<div class="bp-modal-body">' +
+      '<p class="bp-modal-desc">' +
+      descText +
+      "</p>" +
+      '<div class="bp-tree-container">' +
+      treeHtml +
+      "</div>" +
+      '<div class="bp-modal-form">' +
+      '<label class="bp-form-label">根文件夹名称</label>' +
+      '<input type="text" class="bp-form-input" id="bpRootName" value="' +
+      escapeHtml(bp.defaultRoot) +
+      '">' +
+      '<label class="bp-form-label">创建到</label>' +
+      '<select class="bp-form-select" id="bpTarget"' +
+      (noTarget ? " disabled" : "") +
+      ">" +
+      targetOptions +
+      "</select>" +
+      (noTarget
+        ? '<p class="bp-form-hint">请先在上方「云端文档」区域连接 Google Drive 或 Dropbox</p>'
+        : "") +
+      "</div>" +
+      "</div>" +
+      '<div class="bp-modal-footer">' +
+      '<button class="bp-modal-cancel" id="bpModalCancel">取消</button>' +
+      '<button class="bp-modal-confirm" id="bpModalConfirm" data-bp="' +
+      bp.id +
+      '"' +
+      (noTarget ? " disabled" : "") +
+      ">创建目录结构</button>" +
+      "</div>" +
+      "</div>" +
+      "</div>"
+    );
+  }
+
+  function showBestPracticeModal(bpId) {
+    var bp = null;
+    for (var i = 0; i < BEST_PRACTICES.length; i++) {
+      if (BEST_PRACTICES[i].id === bpId) {
+        bp = BEST_PRACTICES[i];
+        break;
+      }
+    }
+    if (!bp) return;
+
+    var existing = document.getElementById("bpModal");
+    if (existing) existing.remove();
+
+    var div = document.createElement("div");
+    div.innerHTML = renderBestPracticeModal(bp);
+    document.body.appendChild(div.firstElementChild);
+
+    document.getElementById("bpModalClose").addEventListener("click", closeBestPracticeModal);
+    document.getElementById("bpModalCancel").addEventListener("click", closeBestPracticeModal);
+    document.getElementById("bpModal").addEventListener("click", function (e) {
+      if (e.target === this) closeBestPracticeModal();
+    });
+    document.getElementById("bpModalConfirm").addEventListener("click", function () {
+      var rootName = document.getElementById("bpRootName").value.trim();
+      var target = document.getElementById("bpTarget").value;
+      if (!rootName || !target) return;
+      createBestPracticeStructure(bpId, rootName, target);
+    });
+  }
+
+  function closeBestPracticeModal() {
+    var modal = document.getElementById("bpModal");
+    if (modal) modal.remove();
+  }
+
+  function createBestPracticeStructure(template, rootName, target) {
+    var btn = document.getElementById("bpModalConfirm");
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = "创建中...";
+    }
+
+    postJson("/api/knowledge/create-structure", {
+      template: template,
+      rootName: rootName,
+      target: target,
+    })
+      .then(function (res) {
+        closeBestPracticeModal();
+        if (res.ok) {
+          var msg =
+            "创建成功！文件夹: " + res.created.folders + " 个，文件: " + res.created.files + " 个";
+          if (res.errors && res.errors.length > 0) {
+            msg += "（" + res.errors.length + " 个错误）";
+          }
+          showToast(msg, "success");
+          loadKnowledgeStatus().then(function () {
+            render();
+          });
+        } else {
+          showToast("创建失败: " + (res.error || "未知错误"), "error");
+        }
+      })
+      .catch(function (err) {
+        closeBestPracticeModal();
+        showToast("创建失败: " + err.message, "error");
+      });
+  }
+
+  function syncProfile() {
+    var target = state.knowledge.googleDrive.connected ? "google-drive" : "dropbox";
+    var rootName = "PersonalBrain";
+
+    var btn = document.querySelector(".bp-sync-profile-btn");
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = "同步中...";
+    }
+
+    postJson("/api/knowledge/sync-profile", {
+      target: target,
+      rootName: rootName,
+    })
+      .then(function (res) {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = "同步";
+        }
+        if (res.ok) {
+          showToast("个人档案已同步到 " + res.path, "success");
+        } else {
+          showToast("同步失败: " + (res.error || "未知错误"), "error");
+        }
+      })
+      .catch(function (err) {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = "同步";
+        }
+        showToast("同步失败: " + err.message, "error");
+      });
   }
 
   // ===== 12. RENDER ONBOARDING =====
@@ -2063,6 +2400,24 @@
         updateKnowledgeSelection(source, selectedIds);
       });
     });
+
+    // Best practice card click → open modal
+    var bpCards = document.querySelectorAll(".bp-card");
+    bpCards.forEach(function (card) {
+      card.addEventListener("click", function () {
+        var bpId = this.getAttribute("data-bp");
+        showBestPracticeModal(bpId);
+      });
+    });
+
+    // Sync profile button
+    var syncProfileBtn = document.querySelector(".bp-sync-profile-btn");
+    if (syncProfileBtn) {
+      syncProfileBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        syncProfile();
+      });
+    }
   }
 
   function bindOnboardingEvents() {

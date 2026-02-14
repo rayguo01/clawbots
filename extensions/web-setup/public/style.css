@@ -1012,6 +1012,12 @@ body {
     justify-content: flex-start;
     flex-wrap: nowrap;
   }
+  .channels-grid {
+    grid-template-columns: 1fr;
+  }
+  .channel-card.expanded {
+    padding: 24px;
+  }
 }
 
 /* Mobile */
@@ -1167,65 +1173,127 @@ body {
 }
 
 /* ===== IM Page Styles ===== */
+.channels-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
 .channel-card {
   background: var(--card);
   border-radius: var(--radius-lg);
   padding: 28px;
   box-shadow: var(--shadow-card);
-  margin-bottom: 20px;
   border: 2px solid transparent;
-  transition: var(--transition);
+  transition:
+    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.channel-card:not(.expanded):hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card-hover);
+  border-color: var(--primary-soft);
 }
 
 .channel-card.expanded {
   border-color: var(--primary-soft);
   box-shadow: var(--shadow-raised);
+  grid-column: 1 / -1;
+  padding: 32px;
 }
 
 .channel-card-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 16px;
 }
 
 .channel-card-icon {
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  box-shadow: var(--shadow-soft);
 }
 
 .channel-card-icon svg {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   color: white;
 }
 
 .channel-card-info {
   flex: 1;
+  min-width: 0;
 }
 
 .channel-card-name {
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-size: 1.15rem;
+  font-weight: 800;
   color: var(--title);
-  margin-bottom: 2px;
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+}
+
+.channel-card-desc {
+  font-size: 0.82rem;
+  color: var(--body);
+  line-height: 1.5;
+  margin-bottom: 8px;
 }
 
 .channel-card-status {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   color: var(--muted);
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
+  padding: 3px 12px 3px 8px;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+}
+
+.channel-card-status .status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.channel-card-status.connected {
+  background: var(--success-soft);
+  color: #059669;
+}
+
+.channel-card-status.connected .status-dot {
+  background: var(--success);
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);
+}
+
+.channel-card-status.disconnected {
+  background: var(--bg);
+  color: var(--muted);
+}
+
+.channel-card-status.disconnected .status-dot {
+  background: var(--muted);
+}
+
+.channel-user-id {
+  margin-left: 4px;
+  font-weight: 500;
+  opacity: 0.85;
 }
 
 .channel-card-actions {
   display: flex;
   gap: 10px;
+  flex-shrink: 0;
 }
 
 .channel-card-body {
@@ -1234,10 +1302,55 @@ body {
   border-top: 1px solid var(--border-soft);
 }
 
-.setup-form {
+/* Channel form (Telegram / WhatsApp setup) */
+.channel-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
+}
+
+.channel-form-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  background: var(--primary-ultra-soft);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--primary-soft);
+}
+
+.channel-form-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 0.85rem;
+  color: var(--body);
+  line-height: 1.5;
+}
+
+.channel-form-step a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.channel-form-step a:hover {
+  text-decoration: underline;
+}
+
+.step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: white;
+  font-size: 0.72rem;
+  font-weight: 700;
+  flex-shrink: 0;
 }
 
 .form-group {
@@ -1279,16 +1392,17 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 16px;
-  padding: 24px;
+  padding: 32px;
   background: var(--bg-warm);
   border-radius: var(--radius-md);
-  border: 1px solid var(--border-soft);
+  border: 1.5px dashed var(--border);
 }
 
 .qr-area img {
   width: 256px;
   height: 256px;
   border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-card);
 }
 
 .qr-area .qr-hint {

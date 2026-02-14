@@ -1497,45 +1497,67 @@
     var channel = state.channels[type];
     var icon = ICONS[type];
     var title = type === "telegram" ? "Telegram" : "WhatsApp";
+    var desc =
+      type === "telegram"
+        ? "通过 Telegram Bot 与 AI 助手对话，支持群组和私聊"
+        : "通过 WhatsApp 与 AI 助手对话，扫码即可连接";
     var configured = channel.configured;
+    var isExpanded = state.onboardingChannel === type;
 
-    var statusHtml = configured
-      ? '<div class="channel-status channel-status-connected">' +
-        '<span class="status-dot"></span>已连接' +
-        (type === "telegram" && channel.userId
-          ? '<span class="channel-user-id">@' + escapeHtml(channel.userId) + "</span>"
-          : "") +
+    var statusClass = configured ? "connected" : "disconnected";
+    var statusText = configured ? "已连接" : "未连接";
+    var userIdHtml =
+      configured && type === "telegram" && channel.userId
+        ? ' <span class="channel-user-id">@' + escapeHtml(channel.userId) + "</span>"
+        : "";
+
+    var statusHtml =
+      '<div class="channel-card-status ' +
+      statusClass +
+      '">' +
+      '<span class="status-dot"></span>' +
+      statusText +
+      userIdHtml +
+      "</div>";
+
+    var actionHtml = configured
+      ? '<div class="channel-card-actions">' +
+        '<button class="btn btn-danger btn-sm channel-disconnect-btn" data-channel="' +
+        type +
+        '">断开连接</button>' +
         "</div>"
-      : '<div class="channel-status channel-status-disconnected">' +
-        '<span class="status-dot"></span>未连接' +
+      : '<div class="channel-card-actions">' +
+        '<button class="btn btn-primary btn-sm channel-connect-btn" data-channel="' +
+        type +
+        '">连接</button>' +
         "</div>";
 
     var formHtml = "";
-    if (!configured) {
-      if (type === "telegram") {
-        formHtml = renderTelegramForm();
-      } else {
-        formHtml = renderWhatsAppForm();
-      }
+    if (!configured && isExpanded) {
+      formHtml =
+        '<div class="channel-card-body">' +
+        (type === "telegram" ? renderTelegramForm() : renderWhatsAppForm()) +
+        "</div>";
     }
 
-    var actionHtml = configured
-      ? '<button class="channel-disconnect-btn" data-channel="' + type + '">断开连接</button>'
-      : '<button class="channel-connect-btn" data-channel="' + type + '">连接</button>';
-
     return (
-      '<div class="channel-card ' +
-      (state.onboardingChannel === type ? "expanded" : "") +
+      '<div class="channel-card' +
+      (isExpanded ? " expanded" : "") +
       '" data-channel="' +
       type +
       '">' +
       '<div class="channel-card-header">' +
-      '<div class="channel-icon">' +
+      '<div class="channel-card-icon icon-' +
+      type +
+      '">' +
       icon +
       "</div>" +
-      '<div class="channel-info">' +
-      '<div class="channel-title">' +
+      '<div class="channel-card-info">' +
+      '<div class="channel-card-name">' +
       title +
+      "</div>" +
+      '<div class="channel-card-desc">' +
+      desc +
       "</div>" +
       statusHtml +
       "</div>" +
@@ -1549,15 +1571,31 @@
   function renderTelegramForm() {
     return (
       '<div class="channel-form telegram-form">' +
+      '<div class="channel-form-steps">' +
+      '<div class="channel-form-step">' +
+      '<span class="step-number">1</span>' +
+      '<span>在 Telegram 中搜索 <a href="https://t.me/BotFather" target="_blank" rel="noopener">@BotFather</a>，发送 /newbot 创建机器人</span>' +
+      "</div>" +
+      '<div class="channel-form-step">' +
+      '<span class="step-number">2</span>' +
+      "<span>复制 BotFather 给你的 Bot Token 填入下方</span>" +
+      "</div>" +
+      '<div class="channel-form-step">' +
+      '<span class="step-number">3</span>' +
+      '<span>获取你的 User ID（可向 <a href="https://t.me/userinfobot" target="_blank" rel="noopener">@userinfobot</a> 发送消息获取）</span>' +
+      "</div>" +
+      "</div>" +
       '<div class="form-group">' +
       "<label>Bot Token</label>" +
       '<input type="text" class="telegram-token-input" placeholder="110201543:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw">' +
+      '<span class="hint">从 @BotFather 获取的 Bot Token</span>' +
       "</div>" +
       '<div class="form-group">' +
       "<label>User ID</label>" +
       '<input type="text" class="telegram-userid-input" placeholder="123456789">' +
+      '<span class="hint">你的 Telegram 数字用户 ID</span>' +
       "</div>" +
-      '<button class="telegram-verify-btn">验证并连接</button>' +
+      '<button class="btn btn-primary telegram-verify-btn">验证并连接</button>' +
       "</div>"
     );
   }
@@ -1567,12 +1605,25 @@
       ? '<img src="' +
         escapeHtml(state.whatsappQR) +
         '" class="whatsapp-qr" alt="WhatsApp QR Code">'
-      : '<button class="whatsapp-generate-qr-btn">生成二维码</button>';
+      : '<button class="btn btn-primary whatsapp-generate-qr-btn">生成二维码</button>';
 
     return (
       '<div class="channel-form whatsapp-form">' +
-      '<p class="whatsapp-hint">用手机 WhatsApp 扫描下方二维码连接</p>' +
-      '<div class="whatsapp-qr-container">' +
+      '<div class="channel-form-steps">' +
+      '<div class="channel-form-step">' +
+      '<span class="step-number">1</span>' +
+      "<span>点击下方按钮生成二维码</span>" +
+      "</div>" +
+      '<div class="channel-form-step">' +
+      '<span class="step-number">2</span>' +
+      "<span>打开手机 WhatsApp → 设置 → 已关联的设备 → 关联设备</span>" +
+      "</div>" +
+      '<div class="channel-form-step">' +
+      '<span class="step-number">3</span>' +
+      "<span>扫描下方二维码完成连接</span>" +
+      "</div>" +
+      "</div>" +
+      '<div class="qr-area">' +
       qrHtml +
       "</div>" +
       "</div>"
@@ -1580,12 +1631,34 @@
   }
 
   function renderIMPage() {
+    var tgConnected = state.channels.telegram.configured;
+    var waConnected = state.channels.whatsapp.configured;
+    var connectedCount = (tgConnected ? 1 : 0) + (waConnected ? 1 : 0);
+
+    var statsHtml =
+      '<div class="page-stats">' +
+      '<div class="stat-item">' +
+      '<span class="stat-number ' +
+      (connectedCount > 0 ? "green" : "") +
+      '">' +
+      connectedCount +
+      "</span>" +
+      '<span class="stat-label">已连接</span>' +
+      "</div>" +
+      '<div class="stat-divider"></div>' +
+      '<div class="stat-item">' +
+      '<span class="stat-number blue">2</span>' +
+      '<span class="stat-label">可用通道</span>' +
+      "</div>" +
+      "</div>";
+
     return (
       '<main class="main">' +
       '<div class="page-header">' +
-      "<h1>接入IM</h1>" +
+      "<h1>接入 IM</h1>" +
       "<p>连接你的 Telegram 或 WhatsApp 账号，开始与 AI 助手对话</p>" +
       "</div>" +
+      statsHtml +
       '<div class="channels-grid">' +
       renderChannelCard("telegram") +
       renderChannelCard("whatsapp") +
@@ -2523,17 +2596,17 @@
       "</div>" +
       '<div class="onboarding-channels">' +
       '<div class="onboarding-channel-card" data-channel="telegram">' +
-      '<div class="onboarding-channel-icon">' +
+      '<div class="channel-icon icon-telegram">' +
       ICONS.telegram +
       "</div>" +
-      '<div class="onboarding-channel-title">Telegram</div>' +
+      '<div class="channel-name">Telegram</div>' +
       '<p class="onboarding-channel-desc">通过 Telegram 机器人与 AI 助手对话</p>' +
       "</div>" +
       '<div class="onboarding-channel-card" data-channel="whatsapp">' +
-      '<div class="onboarding-channel-icon">' +
+      '<div class="channel-icon icon-whatsapp">' +
       ICONS.whatsapp +
       "</div>" +
-      '<div class="onboarding-channel-title">WhatsApp</div>' +
+      '<div class="channel-name">WhatsApp</div>' +
       '<p class="onboarding-channel-desc">通过 WhatsApp 与 AI 助手对话</p>' +
       "</div>" +
       "</div>" +

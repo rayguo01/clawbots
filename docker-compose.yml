@@ -43,6 +43,7 @@ services:
       - nanobots-data:/home/node/.nanobots
       - nanobots-workspace:/home/node/.nanobots/workspace
       - qmd-models:/home/node/.nanobots/shared/qmd-models
+      - ./skills:/app/skills
     ports:
       - "${NANOBOTS_PORT:-8080}:8080"
     init: true

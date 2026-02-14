@@ -342,12 +342,8 @@ export function registerKnowledgeRoutes(api: OpenClawPluginApi) {
           target: "google-drive" | "dropbox";
         };
 
-        if (!target) {
-          sendJson(res, 400, { error: "Missing target" });
-          return;
-        }
-        if (!rootFolderId && !rootName) {
-          sendJson(res, 400, { error: "Missing rootFolderId or rootName" });
+        if (!target || !rootName) {
+          sendJson(res, 400, { error: "Missing target or rootName" });
           return;
         }
 
@@ -375,9 +371,8 @@ export function registerKnowledgeRoutes(api: OpenClawPluginApi) {
           entries = await loadCompanyTemplateEntries();
         }
 
-        // If rootFolderId is provided, create entries directly under it.
-        // Otherwise fall back to creating/finding a root by name.
-        const result = await createStructureOnGoogleDrive(rootName ?? "", entries, rootFolderId);
+        // Create rootName folder under rootFolderId (if given), else under Drive root.
+        const result = await createStructureOnGoogleDrive(rootName, entries, rootFolderId);
 
         sendJson(res, 200, {
           ok: true,

@@ -90,9 +90,8 @@ export async function findGoogleDriveFolder(
  * entries is a flat list: { path: "dir/subdir/file.md", content?: "..." }
  * Entries without content are folder-only entries.
  *
- * If parentFolderId is provided, entries are created directly under that folder
- * (no new root folder is created). Otherwise a root folder named rootName is
- * created / found at Drive top-level.
+ * If parentFolderId is provided, the rootName folder is created/found under
+ * that parent instead of Drive top-level.
  */
 export async function createStructureOnGoogleDrive(
   rootName: string,
@@ -101,16 +100,10 @@ export async function createStructureOnGoogleDrive(
 ): Promise<{ folderId: string; created: { folders: number; files: number }; errors: string[] }> {
   const result = { folderId: "", created: { folders: 0, files: 0 }, errors: [] as string[] };
 
-  let rootId: string;
-  if (parentFolderId) {
-    // Use the caller-supplied folder directly
-    rootId = parentFolderId;
-  } else {
-    // Create or find root folder at Drive top-level
-    rootId = (await findGoogleDriveFolder(rootName)) ?? (await createGoogleDriveFolder(rootName));
-    if (!rootId) {
-      rootId = await createGoogleDriveFolder(rootName);
-    }
+  // Find or create the rootName folder (under parentFolderId if given, else Drive root)
+  let rootId = await findGoogleDriveFolder(rootName, parentFolderId);
+  if (!rootId) {
+    rootId = await createGoogleDriveFolder(rootName, parentFolderId);
     result.created.folders++;
   }
   result.folderId = rootId;

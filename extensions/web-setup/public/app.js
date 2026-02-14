@@ -2077,6 +2077,10 @@
       treeHtml +
       "</div>" +
       '<div class="bp-modal-form">' +
+      '<label class="bp-form-label">文件夹名称</label>' +
+      '<input type="text" class="bp-form-input" id="bpRootName" value="' +
+      escapeHtml(bp.defaultRoot) +
+      '">' +
       '<label class="bp-form-label">创建到</label>' +
       '<select class="bp-form-select" id="bpTarget"' +
       (noTarget ? " disabled" : "") +
@@ -2122,13 +2126,13 @@
       if (e.target === this) closeBestPracticeModal();
     });
     document.getElementById("bpModalConfirm").addEventListener("click", function () {
+      var rootName = document.getElementById("bpRootName").value.trim();
       var targetSelect = document.getElementById("bpTarget");
       var target = targetSelect.value;
-      if (!target) return;
+      if (!rootName || !target) return;
       var selectedOption = targetSelect.options[targetSelect.selectedIndex];
       var rootFolderId = selectedOption.getAttribute("data-root-id");
-      if (!rootFolderId) return;
-      createBestPracticeStructure(bpId, rootFolderId, target);
+      createBestPracticeStructure(bpId, rootName, rootFolderId, target);
     });
   }
 
@@ -2423,18 +2427,21 @@
     });
   }
 
-  function createBestPracticeStructure(template, rootFolderId, target) {
+  function createBestPracticeStructure(template, rootName, rootFolderId, target) {
     var btn = document.getElementById("bpModalConfirm");
     if (btn) {
       btn.disabled = true;
       btn.textContent = "创建中...";
     }
 
-    postJson("/api/knowledge/create-structure", {
+    var body = {
       template: template,
-      rootFolderId: rootFolderId,
+      rootName: rootName,
       target: target,
-    })
+    };
+    if (rootFolderId) body.rootFolderId = rootFolderId;
+
+    postJson("/api/knowledge/create-structure", body)
       .then(function (res) {
         closeBestPracticeModal();
         if (res.ok) {

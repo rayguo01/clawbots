@@ -36,6 +36,10 @@ services:
       NANOBOTS_GITHUB_CLIENT_SECRET: ${NANOBOTS_GITHUB_CLIENT_SECRET}
       NANOBOTS_MEMORY_BACKEND: qmd
       NANOBOTS_QMD_MODELS_DIR: /home/node/.nanobots/shared/qmd-models
+      NANOBOTS_LILY_TELEGRAM_BOT_TOKEN: ${NANOBOTS_LILY_TELEGRAM_BOT_TOKEN:-}
+      POSTIZ_URL: ${POSTIZ_URL:-}
+      POSTIZ_EMAIL: ${POSTIZ_EMAIL:-}
+      POSTIZ_PASSWORD: ${POSTIZ_PASSWORD:-}
     depends_on:
       ezbookkeeping:
         condition: service_started
@@ -44,6 +48,7 @@ services:
       - nanobots-workspace:/home/node/.nanobots/workspace
       - qmd-models:/home/node/.nanobots/shared/qmd-models
       - ./skills:/app/skills
+      - ./workspace-lily:/home/node/.nanobots/workspace-lily
     ports:
       - "${NANOBOTS_PORT:-8080}:8080"
     init: true

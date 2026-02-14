@@ -1,0 +1,127 @@
+#!/bin/bash
+# Setup Lily marketing agent in nanobots config.
+# Run this AFTER registering a Telegram bot for Lily via @BotFather.
+#
+# Usage: ./scripts/setup-lily-agent.sh <lily-bot-token>
+#
+# This script updates nanobots.json inside the running container to:
+# 1. Add 'pi' (default) and 'lily' agents to agents.list
+# 2. Add bindings to route telegram accounts to agents
+# 3. Add lily telegram account to channels.telegram.accounts
+
+set -euo pipefail
+
+LILY_BOT_TOKEN="${1:-}"
+if [ -z "$LILY_BOT_TOKEN" ]; then
+  echo "Usage: $0 <lily-telegram-bot-token>"
+  echo ""
+  echo "Steps:"
+  echo "  1. Open Telegram, message @BotFather"
+  echo "  2. Send /newbot"
+  echo "  3. Name: Lily Marketing"
+  echo "  4. Username: <your_lily_bot> (must end in 'bot')"
+  echo "  5. Copy the token and run this script with it"
+  exit 1
+fi
+
+CONTAINER="nanobots"
+CONFIG_PATH="/home/node/.nanobots/nanobots.json"
+
+# Check container is running
+if ! docker ps --format '{{.Names}}' | grep -q "^${CONTAINER}$"; then
+  echo "Error: Container '${CONTAINER}' is not running."
+  echo "Run: docker compose up -d --build"
+  exit 1
+fi
+
+echo "Reading current config..."
+CURRENT_CONFIG=$(docker exec "$CONTAINER" cat "$CONFIG_PATH")
+
+echo "Updating config with Lily agent..."
+UPDATED_CONFIG=$(echo "$CURRENT_CONFIG" | docker exec -e "LILY_TOKEN=$LILY_BOT_TOKEN" -i "$CONTAINER" node -e "
+let input = '';
+process.stdin.on('data', d => input += d);
+process.stdin.on('end', () => {
+  const cfg = JSON.parse(input);
+
+  // Add agents.list if not exists
+  if (!cfg.agents) cfg.agents = {};
+  if (!cfg.agents.list) cfg.agents.list = [];
+
+  // Remove existing pi/lily entries to avoid duplicates
+  cfg.agents.list = cfg.agents.list.filter(a => a.id !== 'pi' && a.id !== 'lily');
+
+  // Add pi (default agent)
+  cfg.agents.list.push({
+    id: 'pi',
+    default: true
+  });
+
+  // Add lily agent with skills whitelist
+  cfg.agents.list.push({
+    id: 'lily',
+    skills: [
+      'deep-research',
+      'baoyu-url-to-markdown',
+      'nano-banana-pro',
+      'tophub-trends',
+      'world-news-trends',
+      'copywriting',
+      'copy-editing',
+      'social-content',
+      'baoyu-xhs-images',
+      'baoyu-cover-image',
+      'baoyu-infographic',
+      'baoyu-article-illustrator',
+      'marketing-psychology',
+      'pricing-strategy',
+      'launch-strategy',
+      'postiz'
+    ]
+  });
+
+  // Add bindings
+  if (!cfg.bindings) cfg.bindings = [];
+  // Remove existing pi/lily telegram bindings
+  cfg.bindings = cfg.bindings.filter(b =>
+    !(b.match && b.match.channel === 'telegram' && (b.agentId === 'pi' || b.agentId === 'lily'))
+  );
+  cfg.bindings.push({
+    agentId: 'pi',
+    match: { channel: 'telegram' }
+  });
+  cfg.bindings.push({
+    agentId: 'lily',
+    match: { channel: 'telegram', accountId: 'lily' }
+  });
+
+  // Add telegram lily account
+  if (!cfg.channels) cfg.channels = {};
+  if (!cfg.channels.telegram) cfg.channels.telegram = {};
+  if (!cfg.channels.telegram.accounts) cfg.channels.telegram.accounts = {};
+  cfg.channels.telegram.accounts.lily = {
+    name: 'Lily Marketing',
+    botToken: process.env.LILY_TOKEN,
+    enabled: true,
+    dmPolicy: 'pairing'
+  };
+
+  console.log(JSON.stringify(cfg, null, 2));
+});
+")
+
+echo "Writing updated config..."
+echo "$UPDATED_CONFIG" | docker exec -i "$CONTAINER" sh -c "cat > $CONFIG_PATH"
+
+echo ""
+echo "Lily agent configured successfully!"
+echo ""
+echo "Config changes:"
+echo "  - agents.list: added 'pi' (default) + 'lily' (marketing)"
+echo "  - bindings: pi -> telegram (default), lily -> telegram/lily"
+echo "  - channels.telegram.accounts.lily: bot token set"
+echo ""
+echo "Telegram channel needs restart to pick up new account."
+echo "Run: docker restart nanobots"
+echo ""
+echo "After restart, message your Lily bot on Telegram to test!"

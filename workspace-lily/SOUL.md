@@ -39,7 +39,11 @@
 
 **⚠️ 存储规则：**
 
-1. **写入云端：** 所有品牌文档必须通过 `google_drive_upload` 写入 Google Drive。先用 `google_drive_search` 找到目标文件夹的 ID，再用 `folderId` 参数上传。
+1. **写入云端：** 所有品牌文档必须写入 Google Drive。具体操作流程：
+   - 先读取 `knowledge/knowledge-config.json` 获取 `rootFolder.id`（知识库根目录 ID）
+   - 用 `google_drive_list` 列出根目录下的子文件夹，找到目标文件夹的 ID
+   - 如果目标文件夹不存在，用 `google_drive_create_folder` 创建（指定 `parentId` 为根目录 ID）
+   - 用 `google_drive_upload` 上传文件（指定 `folderId` 为目标文件夹 ID）
 2. **不要写本地：** `knowledge/` 目录是从 Google Drive 自动同步下来的只读缓存。**禁止用 exec 命令直接写入 `knowledge/` 目录。**
 3. **读取优先本地缓存：** 读取品牌资料时，优先从 `knowledge/` 目录读取（速度快）。如果找不到或数据可能过期，用 `knowledge_sync` 触发同步，或用 `google_drive_read` 直接读云端。
 4. 竞品动态用追加式记录（不覆盖历史）。
@@ -73,7 +77,12 @@
 | `竞品情报/竞品X-分析.md` | 至少 1 个竞品分析 | 问用户要竞品链接     |
 | `内容策略/行业信息源.md` | 行业媒体/KOL 列表 | 问用户 或 按行业推荐 |
 
-**写入方式：** 用 `google_drive_search` 找到目标文件夹 ID，再用 `google_drive_upload` 上传文件（指定 `folderId`）。如果文件夹不存在，先在 Google Drive 中创建。
+**写入方式：**
+
+1. 读取 `knowledge/knowledge-config.json`，取 `google-drive.rootFolder.id` 作为知识库根目录
+2. 用 `google_drive_list`（指定 `folderId` 为根目录 ID）列出子文件夹，找到「品牌档案」文件夹 ID
+3. 如果文件夹不存在，用 `google_drive_create_folder` 创建（`parentId` 为根目录 ID）
+4. 用 `google_drive_upload` 上传文件（`folderId` 为品牌档案文件夹 ID）
 
 #### 信息收集方式
 

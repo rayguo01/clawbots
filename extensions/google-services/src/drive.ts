@@ -41,8 +41,21 @@ const UploadSchema = Type.Object({
   folderId: Type.Optional(Type.String({ description: "Parent folder ID. Default: root." })),
 });
 
+const CreateFolderSchema = Type.Object({
+  name: Type.String({ description: "Folder name to create." }),
+  parentId: Type.Optional(
+    Type.String({ description: "Parent folder ID. Default: root (My Drive)." }),
+  ),
+});
+
 export function createDriveTools(): AnyAgentTool[] {
-  return [createSearchTool(), createListTool(), createReadTool(), createUploadTool()];
+  return [
+    createSearchTool(),
+    createListTool(),
+    createReadTool(),
+    createUploadTool(),
+    createCreateFolderTool(),
+  ];
 }
 
 function createSearchTool(): AnyAgentTool {
@@ -196,6 +209,34 @@ function createUploadTool(): AnyAgentTool {
       );
       const file = (await res.json()) as DriveFile;
       return jsonResult({ uploaded: true, file: formatFile(file) });
+    },
+  };
+}
+
+function createCreateFolderTool(): AnyAgentTool {
+  return {
+    label: "Google Drive: Create Folder",
+    name: "google_drive_create_folder",
+    description: "Create a folder in Google Drive. Returns the new folder's ID.",
+    parameters: CreateFolderSchema,
+    execute: async (_toolCallId, args) => {
+      const params = args as Record<string, unknown>;
+      const name = String(params.name);
+      const parentId = params.parentId ? String(params.parentId) : undefined;
+
+      const metadata: Record<string, unknown> = {
+        name,
+        mimeType: "application/vnd.google-apps.folder",
+      };
+      if (parentId) metadata.parents = [parentId];
+
+      const res = await googleFetch(`${DRIVE_BASE}/files?fields=id,name,mimeType,webViewLink`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(metadata),
+      });
+      const folder = (await res.json()) as DriveFile;
+      return jsonResult({ created: true, folder: formatFile(folder) });
     },
   };
 }

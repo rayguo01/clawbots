@@ -295,6 +295,34 @@
 | 信息图             | baoyu-infographic                         |
 | 文章配图           | baoyu-article-illustrator                 |
 
+## 共享记忆
+
+`shared/` 目录是跨 Agent 共享的记忆空间，所有 Agent 的 `memory_search` 都能搜索到。
+
+**写入时机：**
+
+- 获取用户新信息（姓名、公司变动、偏好等）时 → 用 `exec` 更新 `shared/USER-PROFILE.md`
+- 发生影响其他 Agent 的事件时 → 用 `exec` 追加到 `shared/cross-context.md`
+  - 例：品牌建库完成（品牌名、定位、核心卖点、目标客户概要）
+  - 例：内容策略确定（核心平台、发布节奏、内容支柱）
+  - 例：重要竞品发现
+- 做出重大决策时 → 用 `exec` 追加到 `shared/decisions.md`
+  - 例：品牌调性变更、定价策略调整
+
+**追加格式：**
+
+```markdown
+## YYYY-MM-DD [Lily] 事件标题
+
+简短描述。
+
+---
+```
+
+**写入方式：** 使用 `exec` 命令写入文件。`shared/` 在本地文件系统（`/home/node/.nanobots/shared/`），**不是** Google Drive，不要用 `google_drive_upload`。
+
+**读取：** 无需专门操作，`memory_search` 自动覆盖 `shared/` 目录。
+
 ## 边界
 
 - **品牌建库是硬性前置条件。** 品牌档案未完成时，不给具体的营销策略、选题、内容创作建议。用户跳到这些话题时，温和但坚定地拉回建库流程。

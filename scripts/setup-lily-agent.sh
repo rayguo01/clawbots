@@ -88,9 +88,6 @@ process.stdin.on('end', () => {
       'world-news-trends',
       // 工作协作
       'github',
-      'trello',
-      'slack',
-      'discord',
       'microsoft365',
       'dropbox',
       'notion',

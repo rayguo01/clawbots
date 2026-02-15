@@ -49,6 +49,7 @@
     onboardingChannel: null,
     whatsappQR: null,
     whatsappPollInterval: null,
+    selectedAgent: null,
   };
 
   // ===== 2. API HELPERS =====
@@ -164,6 +165,8 @@
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>',
     chevronRight:
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>',
+    users:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
   };
 
   // ===== 5. CATEGORIES =====
@@ -1090,6 +1093,11 @@
       ICONS.messageSquare +
       "接入IM</button>" +
       '<button class="nav-tab ' +
+      (state.currentTab === "agent" ? "active" : "") +
+      '" data-tab="agent">' +
+      ICONS.users +
+      "智能体</button>" +
+      '<button class="nav-tab ' +
       (state.currentTab === "skills" ? "active" : "") +
       '" data-tab="skills">' +
       ICONS.wrench +
@@ -1628,6 +1636,206 @@
       "</div>" +
       "</div>"
     );
+  }
+
+  // ===== AGENT DATA & RENDERING =====
+  var AGENTS = [
+    {
+      id: "pi",
+      name: "Pi",
+      emoji: "🥧",
+      role: "个人秘书",
+      tagline: "管理你的日程、任务和目标，让你专注真正重要的事",
+      avatar: "/web/pi-avatar.png",
+      color: "#ec4899",
+      description:
+        "大多数人不缺动力——缺的是清晰度。Pi 帮你把散落在脑海、备忘录、消息里的待办和计划整理成可执行的系统。她主动巡检你的日程、任务、邮件，在关键时刻提醒你，而不是等你想起来才去查。",
+      capabilities: [
+        "日程管理",
+        "任务规划",
+        "邮件处理",
+        "目标跟踪",
+        "习惯养成",
+        "信息整理",
+        "深度研究",
+        "周复盘",
+      ],
+      workflows: [
+        {
+          icon: "📥",
+          name: "快速收集",
+          desc: "随时告诉 Pi 你想到的事，她会记录到收件箱，在晨间简报时帮你安排到日程或任务中。",
+        },
+        {
+          icon: "☀️",
+          name: "晨间简报",
+          desc: "每天早上自动汇总：今日日程、待办任务、未读邮件、天气、收件箱待处理事项。一条消息掌握全天节奏。",
+        },
+        {
+          icon: "📅",
+          name: "日程管理",
+          desc: "创建/查询/调整日历事件，自动检测时间冲突，生成周计划，在会议前推送提醒和背景信息。",
+        },
+        {
+          icon: "✅",
+          name: "任务管理",
+          desc: "把零散想法变成结构化任务，自动排优先级、拆解子任务、跟踪项目进度，支持重复任务模板。",
+        },
+        {
+          icon: "🎯",
+          name: "目标与习惯",
+          desc: "设定 OKR 目标和习惯打卡。Pi 定期检查进度，晚间提醒习惯打卡，周一汇报目标进展。",
+        },
+        {
+          icon: "🧠",
+          name: "信息处理",
+          desc: "通过 /research 深度调研、/brainstorm 头脑风暴、/kickoff 项目启动、/ask 快速问答等技能，帮你处理复杂信息。",
+        },
+        {
+          icon: "💬",
+          name: "沟通辅助",
+          desc: "起草邮件和消息回复，会议前准备议程和背景资料，会后自动生成待办事项。",
+        },
+        {
+          icon: "📊",
+          name: "周复盘",
+          desc: "每周五自动生成复盘报告：本周完成/未完成、目标进展、时间分配分析、下周建议。",
+        },
+      ],
+    },
+  ];
+
+  function renderAgentPage() {
+    if (state.selectedAgent) {
+      return renderAgentDetail(state.selectedAgent);
+    }
+    var html =
+      '<main class="main">' +
+      '<div class="page-header">' +
+      "<h1>智能体</h1>" +
+      "<p>你的 AI 团队，各司其职</p>" +
+      "</div>" +
+      '<div class="agent-grid">';
+
+    AGENTS.forEach(function (agent) {
+      html +=
+        '<div class="agent-card" data-agent-id="' +
+        agent.id +
+        '">' +
+        '<div class="agent-card-visual" style="background: linear-gradient(135deg, ' +
+        agent.color +
+        "15, " +
+        agent.color +
+        '08)">' +
+        '<img src="' +
+        agent.avatar +
+        '" alt="' +
+        agent.name +
+        '" class="agent-avatar">' +
+        "</div>" +
+        '<div class="agent-card-body">' +
+        '<div class="agent-card-header">' +
+        '<span class="agent-emoji">' +
+        agent.emoji +
+        "</span>" +
+        "<h3>" +
+        agent.name +
+        "</h3>" +
+        '<span class="agent-role">' +
+        agent.role +
+        "</span>" +
+        "</div>" +
+        '<p class="agent-tagline">' +
+        agent.tagline +
+        "</p>" +
+        '<div class="agent-caps">';
+      agent.capabilities.forEach(function (cap) {
+        html += '<span class="agent-cap-tag">' + cap + "</span>";
+      });
+      html +=
+        "</div>" +
+        '<button class="agent-detail-btn">了解更多 ' +
+        ICONS.chevronRight +
+        "</button>" +
+        "</div></div>";
+    });
+
+    html += "</div></main>";
+    return html;
+  }
+
+  function renderAgentDetail(agentId) {
+    var agent = AGENTS.find(function (a) {
+      return a.id === agentId;
+    });
+    if (!agent) return renderAgentPage();
+
+    var html =
+      '<main class="main">' +
+      '<button class="agent-back-btn" data-action="agent-back">' +
+      ICONS.chevronRight +
+      " 返回</button>" +
+      '<div class="agent-detail-hero" style="background: linear-gradient(135deg, ' +
+      agent.color +
+      "12, " +
+      agent.color +
+      '05)">' +
+      '<img src="' +
+      agent.avatar +
+      '" alt="' +
+      agent.name +
+      '" class="agent-detail-avatar">' +
+      '<div class="agent-detail-intro">' +
+      '<div class="agent-detail-name">' +
+      '<span class="agent-emoji-lg">' +
+      agent.emoji +
+      "</span>" +
+      "<h1>" +
+      agent.name +
+      " · " +
+      agent.role +
+      "</h1>" +
+      "</div>" +
+      '<p class="agent-detail-desc">' +
+      agent.description +
+      "</p>" +
+      "</div></div>" +
+      '<h2 class="agent-section-title">工作流</h2>' +
+      '<div class="agent-workflow-grid">';
+
+    agent.workflows.forEach(function (wf) {
+      html +=
+        '<div class="agent-workflow-card">' +
+        '<div class="agent-wf-icon">' +
+        wf.icon +
+        "</div>" +
+        "<h3>" +
+        wf.name +
+        "</h3>" +
+        "<p>" +
+        wf.desc +
+        "</p>" +
+        "</div>";
+    });
+
+    html += "</div></main>";
+    return html;
+  }
+
+  function bindAgentEvents() {
+    document.querySelectorAll(".agent-card").forEach(function (card) {
+      card.addEventListener("click", function () {
+        state.selectedAgent = this.getAttribute("data-agent-id");
+        render();
+      });
+    });
+    var backBtn = document.querySelector('[data-action="agent-back"]');
+    if (backBtn) {
+      backBtn.addEventListener("click", function () {
+        state.selectedAgent = null;
+        render();
+      });
+    }
   }
 
   function renderIMPage() {
@@ -2635,6 +2843,8 @@
       html += renderIMPage();
     } else if (state.currentTab === "knowledge") {
       html += renderKnowledgePage();
+    } else if (state.currentTab === "agent") {
+      html += renderAgentPage();
     }
     html += renderOnboarding();
 
@@ -2653,6 +2863,8 @@
       bindIMEvents();
     } else if (state.currentTab === "knowledge") {
       bindKnowledgeEvents();
+    } else if (state.currentTab === "agent") {
+      bindAgentEvents();
     }
     if (state.showOnboarding) {
       bindOnboardingEvents();
@@ -3327,11 +3539,12 @@
   // ===== 18. ROUTER =====
   function route() {
     var hash = window.location.hash.replace("#", "") || "skills";
-    if (["im", "skills", "services", "knowledge"].indexOf(hash) !== -1) {
+    if (["im", "agent", "skills", "services", "knowledge"].indexOf(hash) !== -1) {
       state.currentTab = hash;
     } else {
       state.currentTab = "skills";
     }
+    state.selectedAgent = null;
     render();
   }
 

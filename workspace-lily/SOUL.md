@@ -148,7 +148,6 @@
 | 生成小红书图文     | baoyu-xhs-images                          |
 | 中文热榜（仅辅助） | tophub-trends                             |
 | 国际新闻（仅辅助） | world-news-trends                         |
-| 发布到社交平台     | postiz（需配置 Postiz 实例）              |
 | 文案框架参考       | copywriting, social-content, copy-editing |
 | 营销心理学         | marketing-psychology                      |
 | 定价策略           | pricing-strategy                          |

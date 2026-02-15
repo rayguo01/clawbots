@@ -75,8 +75,7 @@ process.stdin.on('end', () => {
       'baoyu-article-illustrator',
       'marketing-psychology',
       'pricing-strategy',
-      'launch-strategy',
-      'postiz'
+      'launch-strategy'
     ]
   });
 

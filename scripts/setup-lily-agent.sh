@@ -1,16 +1,17 @@
 #!/bin/bash
-# Setup Lily marketing agent in nanobots config.
+# Setup Pi secretary + Lily marketing agent in nanobots config.
 # Run this AFTER registering a Telegram bot for Lily via @BotFather.
 #
 # Usage: ./scripts/setup-lily-agent.sh <lily-bot-token>
 #
 # This script updates nanobots.json inside the running container to:
-# 1. Add 'pi' (default) and 'lily' agents to agents.list
+# 1. Add 'pi' (default, heartbeat) and 'lily' agents to agents.list
 # 2. Add bindings to route telegram accounts to agents
 # 3. Add lily telegram account to channels.telegram.accounts
 # 4. Configure memory.qmd.paths (knowledge + shared collections)
 # 5. Copy knowledge-config.json from Pi to Lily
 # 6. Create shared memory directory with initial files
+# 7. Deploy Pi secretary workspace (SOUL.md, HEARTBEAT.md, templates)
 
 set -euo pipefail
 
@@ -215,61 +216,6 @@ _Format: ## YYYY-MM-DD [AgentName] Decision Title_
 ---
 TMPL
   echo '  ✓ Created decisions.md'
-fi
-"
-
-# Add shared memory section to Pi's SOUL.md (if not already present)
-PI_SOUL="/home/node/.nanobots/workspace/SOUL.md"
-
-echo ""
-echo "Updating Pi's SOUL.md with shared memory conventions..."
-docker exec "$CONTAINER" sh -c "
-if [ -f '$PI_SOUL' ] && ! grep -q 'Shared Memory' '$PI_SOUL'; then
-  # Remove closing line temporarily
-  sed -i '/^_This file is yours to evolve/d' '$PI_SOUL'
-  # Remove trailing blank lines and dashes
-  sed -i -e :a -e '/^\s*$/{\$d;N;ba}' '$PI_SOUL'
-
-  cat >> '$PI_SOUL' << 'SOULPATCH'
-
-## Shared Memory
-
-\`shared/\` is a cross-agent shared memory space. All agents' \`memory_search\` can search it.
-
-**When to write:**
-
-- Learning new user info (name, company changes, preferences) → update \`shared/USER-PROFILE.md\` via \`exec\`
-- Events that other agents should know about → append to \`shared/cross-context.md\` via \`exec\`
-  - e.g. upcoming product launch dates, important meetings, business milestones
-  - e.g. user requests that involve other agents' domains
-- Major decisions → append to \`shared/decisions.md\` via \`exec\`
-  - e.g. pricing changes, strategic pivots
-
-**Append format:**
-
-\`\`\`markdown
-## YYYY-MM-DD [Pi] Event Title
-
-Brief description.
-
----
-\`\`\`
-
-**How to write:** Use \`exec\` to write files. \`shared/\` is on the local filesystem (\`/home/node/.nanobots/shared/\`), NOT Google Drive.
-
-**Reading:** No special action needed — \`memory_search\` automatically covers \`shared/\`.
-
----
-
-_This file is yours to evolve. As you learn who you are, update it._
-SOULPATCH
-  echo '  ✓ Added shared memory section to Pi SOUL.md'
-else
-  if [ -f '$PI_SOUL' ]; then
-    echo '  ✓ Pi SOUL.md already has shared memory section'
-  else
-    echo '  ⚠ Pi SOUL.md not found (will be created on first run)'
-  fi
 fi
 "
 

@@ -54,10 +54,19 @@ process.stdin.on('end', () => {
   // Remove existing pi/lily entries to avoid duplicates
   cfg.agents.list = cfg.agents.list.filter(a => a.id !== 'pi' && a.id !== 'lily');
 
-  // Add pi (default agent)
+  // Add pi (default agent) with heartbeat config
   cfg.agents.list.push({
     id: 'pi',
-    default: true
+    default: true,
+    heartbeat: {
+      every: '30m',
+      activeHours: {
+        start: '07:30',
+        end: '23:00',
+        timezone: 'Asia/Singapore'
+      },
+      target: 'last'
+    }
   });
 
   // Add lily agent with skills whitelist
@@ -264,18 +273,45 @@ else
 fi
 "
 
+# Deploy Pi secretary workspace files
+PI_WORKSPACE="/home/node/.nanobots/workspace"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_DIR="$(dirname "$SCRIPT_DIR")"
+
 echo ""
-echo "Lily agent configured successfully!"
+echo "Setting up Pi secretary workspace..."
+
+# Copy SOUL.md and HEARTBEAT.md (always overwrite — these are our managed files)
+docker cp "$REPO_DIR/workspace-pi/SOUL.md" "$CONTAINER:$PI_WORKSPACE/SOUL.md"
+echo "  ✓ Updated SOUL.md"
+
+docker cp "$REPO_DIR/workspace-pi/HEARTBEAT.md" "$CONTAINER:$PI_WORKSPACE/HEARTBEAT.md"
+echo "  ✓ Updated HEARTBEAT.md"
+
+# Create data files only if they don't exist (preserve user data)
+for f in inbox.md goals.md habits.md projects.md; do
+  if docker exec "$CONTAINER" test ! -f "$PI_WORKSPACE/$f"; then
+    docker cp "$REPO_DIR/workspace-pi/$f" "$CONTAINER:$PI_WORKSPACE/$f"
+    echo "  ✓ Created $f"
+  else
+    echo "  ✓ $f already exists (keeping user data)"
+  fi
+done
+
+# Create templates directory
+docker exec "$CONTAINER" mkdir -p "$PI_WORKSPACE/templates"
+
+echo ""
+echo "Agents configured successfully!"
 echo ""
 echo "Config changes:"
-echo "  - agents.list: added 'pi' (default) + 'lily' (marketing)"
+echo "  - agents.list: pi (default, heartbeat 30m) + lily (marketing)"
 echo "  - bindings: pi -> telegram (default), lily -> telegram/lily"
 echo "  - channels.telegram.accounts.lily: bot token set"
 echo "  - knowledge-config: shared from Pi's workspace"
 echo "  - memory.qmd.paths: added knowledge + shared collections"
-echo "  - shared/: cross-agent memory directory created"
+echo "  - shared/: cross-agent memory directory"
+echo "  - Pi: secretary SOUL.md + HEARTBEAT.md + workspace templates"
 echo ""
-echo "Telegram channel needs restart to pick up new account."
-echo "Run: docker restart nanobots"
-echo ""
-echo "After restart, message your Lily bot on Telegram to test!"
+echo "Restart to apply:"
+echo "  docker restart nanobots"

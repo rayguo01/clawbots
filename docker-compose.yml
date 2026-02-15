@@ -42,7 +42,7 @@ services:
         condition: service_started
     volumes:
       - nanobots-data:/home/node/.nanobots
-      - nanobots-workspace:/home/node/.nanobots/workspace
+      - ./workspace-pi:/home/node/.nanobots/workspace
       - qmd-models:/home/node/.nanobots/shared/qmd-models
       - ./skills:/app/skills
       - ./workspace-lily:/home/node/.nanobots/workspace-lily
@@ -70,7 +70,6 @@ services:
 
 volumes:
   nanobots-data:
-  nanobots-workspace:
   ezbookkeeping-data:
   qmd-models:
 

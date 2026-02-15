@@ -234,6 +234,14 @@ echo "  ✓ Updated SOUL.md"
 docker cp "$REPO_DIR/workspace-pi/HEARTBEAT.md" "$CONTAINER:$PI_WORKSPACE/HEARTBEAT.md"
 echo "  ✓ Updated HEARTBEAT.md"
 
+# Create BOOTSTRAP.md only if it doesn't exist (deleted after onboarding)
+if docker exec "$CONTAINER" test ! -f "$PI_WORKSPACE/BOOTSTRAP.md"; then
+  docker cp "$REPO_DIR/workspace-pi/BOOTSTRAP.md" "$CONTAINER:$PI_WORKSPACE/BOOTSTRAP.md"
+  echo "  ✓ Created BOOTSTRAP.md (onboarding guide)"
+else
+  echo "  ✓ BOOTSTRAP.md already exists (or was deleted after onboarding)"
+fi
+
 # Create data files only if they don't exist (preserve user data)
 for f in inbox.md goals.md habits.md projects.md; do
   if docker exec "$CONTAINER" test ! -f "$PI_WORKSPACE/$f"; then

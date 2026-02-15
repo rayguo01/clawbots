@@ -88,12 +88,11 @@ workspace-lily/BOOTSTRAP.md
 workspace-lily/knowledge/
 workspace-lily/memory/
 
-# workspace-pi auto-generated (keep SOUL.md, HEARTBEAT.md, templates)
+# workspace-pi auto-generated (keep SOUL.md, HEARTBEAT.md, BOOTSTRAP.md, templates)
 workspace-pi/AGENTS.md
 workspace-pi/TOOLS.md
 workspace-pi/USER.md
 workspace-pi/user-profile.md
 workspace-pi/MEMORY.md
-workspace-pi/BOOTSTRAP.md
 workspace-pi/knowledge/
 workspace-pi/memory/

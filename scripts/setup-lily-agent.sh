@@ -55,10 +55,48 @@ process.stdin.on('end', () => {
   // Remove existing pi/lily entries to avoid duplicates
   cfg.agents.list = cfg.agents.list.filter(a => a.id !== 'pi' && a.id !== 'lily');
 
-  // Add pi (default agent) with heartbeat config
+  // Add pi (default agent) with heartbeat config and skills whitelist
   cfg.agents.list.push({
     id: 'pi',
     default: true,
+    skills: [
+      // 秘书核心 skill
+      'ask',
+      'brainstorm',
+      'kickoff',
+      'parse-knowledge',
+      'research',
+      'deep-research',
+      'summarize',
+      // 日常工具
+      'weather',
+      'baoyu-url-to-markdown',
+      'nano-banana-pro',
+      'nano-pdf',
+      'voice-message',
+      'ezbookkeeping',
+      // 生活服务
+      'food-scout',
+      'xiao-chu-niang',
+      'travel-planner',
+      'goplaces',
+      'luma',
+      // 资讯研究
+      'ai-news-collector',
+      'blogwatcher',
+      'tophub-trends',
+      'world-news-trends',
+      // 工作协作
+      'github',
+      'trello',
+      'slack',
+      'discord',
+      'microsoft365',
+      'dropbox',
+      'notion',
+      // 内容获取
+      'x-to-markdown'
+    ],
     heartbeat: {
       every: '30m',
       activeHours: {

@@ -13,37 +13,40 @@
 
 ## 品牌知识库
 
-品牌资料存储在**用户的 Google Drive 公司知识库**中，推荐结构如下：
+品牌资料存储在**用户 Google Drive 知识库的公司知识库（CompanyBrain）**目录下，完整层级如下：
 
 ```
-公司知识库（Google Drive）/
-  品牌档案/
-    业务概述.md         — 做什么业务、核心产品/服务
-    产品与服务.md       — 产品列表、功能、价格、卖点
-    目标客户.md         — 客户画像、痛点、需求
-    品牌调性与价值主张.md — 品牌个性、核心价值、使命
-  内容策略/
-    内容支柱.md         — 3-5 个核心内容主题方向
-    编辑日历.md         — 周/月内容排期
-    平台策略.md         — 各平台调性差异、hashtag 策略、发布时间
-    写作规范.md         — 语气、常用词/禁用词、人称
-    行业信息源.md       — 用户关注的行业媒体/KOL 列表
-  竞品情报/
-    竞品X-分析.md       — 定位、卖点、目标用户、定价、话术
-    竞品X-动态-YYYY-MM.md — 竞品近期内容动态（追加式）
-  内容素材/
-    优秀帖子样本/       — 高互动的历史帖子（附互动数据）
-    产品介绍/           — 产品图文素材
-    用户评价/           — 客户好评、案例
+知识库/                          ← rootFolder（来自 knowledge-config.json）
+  └── CompanyBrain/              ← 公司知识库（默认名，用户可能改过）
+        ├── 品牌档案/
+        │     业务概述.md         — 做什么业务、核心产品/服务
+        │     产品与服务.md       — 产品列表、功能、价格、卖点
+        │     目标客户.md         — 客户画像、痛点、需求
+        │     品牌调性与价值主张.md — 品牌个性、核心价值、使命
+        ├── 内容策略/
+        │     内容支柱.md         — 3-5 个核心内容主题方向
+        │     编辑日历.md         — 周/月内容排期
+        │     平台策略.md         — 各平台调性差异、hashtag 策略、发布时间
+        │     写作规范.md         — 语气、常用词/禁用词、人称
+        │     行业信息源.md       — 用户关注的行业媒体/KOL 列表
+        ├── 竞品情报/
+        │     竞品X-分析.md       — 定位、卖点、目标用户、定价、话术
+        │     竞品X-动态-YYYY-MM.md — 竞品近期内容动态（追加式）
+        └── 内容素材/
+              优秀帖子样本/       — 高互动的历史帖子（附互动数据）
+              产品介绍/           — 产品图文素材
+              用户评价/           — 客户好评、案例
 ```
 
 **⚠️ 存储规则：**
 
-1. **写入云端：** 所有品牌文档必须写入 Google Drive。具体操作流程：
-   - 先读取 `knowledge/knowledge-config.json` 获取 `rootFolder.id`（知识库根目录 ID）
-   - 用 `google_drive_list` 列出根目录下的子文件夹，找到目标文件夹的 ID
-   - 如果目标文件夹不存在，用 `google_drive_create_folder` 创建（指定 `parentId` 为根目录 ID）
-   - 用 `google_drive_upload` 上传文件（指定 `folderId` 为目标文件夹 ID）
+1. **写入云端：** 所有品牌文档必须写入 Google Drive。查找公司知识库目录的流程：
+   - 读取 `knowledge/knowledge-config.json` 获取 `rootFolder.id`（知识库根目录 ID）
+   - 用 `google_drive_list`（`folderId` = 根目录 ID）列出子文件夹
+   - 查找公司知识库文件夹：优先找名为 `CompanyBrain` 的文件夹；如果没有，找包含 `01-Company` 或 `02-Products` 子目录的文件夹（用户可能改了名字）
+   - 如果公司知识库不存在，用 `google_drive_create_folder` 创建 `CompanyBrain`（`parentId` = 根目录 ID）
+   - 在公司知识库下查找/创建目标子文件夹（品牌档案、内容策略等），用 `google_drive_create_folder`
+   - 用 `google_drive_upload` 上传文件（`folderId` = 目标子文件夹 ID）
 2. **不要写本地：** `knowledge/` 目录是从 Google Drive 自动同步下来的只读缓存。**禁止用 exec 命令直接写入 `knowledge/` 目录。**
 3. **读取优先本地缓存：** 读取品牌资料时，优先从 `knowledge/` 目录读取（速度快）。如果找不到或数据可能过期，用 `knowledge_sync` 触发同步，或用 `google_drive_read` 直接读云端。
 4. 竞品动态用追加式记录（不覆盖历史）。
@@ -59,7 +62,7 @@
 
 #### 建库流程
 
-每次对话开始时，用 `google_drive_search` 搜索"品牌档案"文件夹，检查以下必需文件是否存在。如果任何必需文件缺失或为空，说明建库未完成，必须继续。
+每次对话开始时，按照下方「写入方式」找到公司知识库（CompanyBrain）目录，检查其下「品牌档案」文件夹中以下必需文件是否存在。如果任何必需文件缺失或为空，说明建库未完成，必须继续。
 
 **必需文件清单：**
 
@@ -77,12 +80,15 @@
 | `竞品情报/竞品X-分析.md` | 至少 1 个竞品分析 | 问用户要竞品链接     |
 | `内容策略/行业信息源.md` | 行业媒体/KOL 列表 | 问用户 或 按行业推荐 |
 
-**写入方式：**
+**写入方式（与「品牌知识库 → 存储规则」一致）：**
 
-1. 读取 `knowledge/knowledge-config.json`，取 `google-drive.rootFolder.id` 作为知识库根目录
-2. 用 `google_drive_list`（指定 `folderId` 为根目录 ID）列出子文件夹，找到「品牌档案」文件夹 ID
-3. 如果文件夹不存在，用 `google_drive_create_folder` 创建（`parentId` 为根目录 ID）
-4. 用 `google_drive_upload` 上传文件（`folderId` 为品牌档案文件夹 ID）
+1. 读取 `knowledge/knowledge-config.json`，取 `rootFolder.id` 作为知识库根目录 ID
+2. 用 `google_drive_list`（`folderId` = 根目录 ID）列出子文件夹，按以下优先级查找公司知识库：
+   - 优先找名为 `CompanyBrain` 的文件夹
+   - 如果没有，找包含 `01-Company` 或 `02-Products` 子目录的文件夹（用户可能改了名字）
+   - 都没有 → 用 `google_drive_create_folder` 创建 `CompanyBrain`（`parentId` = 根目录 ID）
+3. 在公司知识库下查找「品牌档案」文件夹 ID；不存在则用 `google_drive_create_folder` 创建
+4. 用 `google_drive_upload` 上传文件（`folderId` = 品牌档案文件夹 ID）
 
 #### 信息收集方式
 

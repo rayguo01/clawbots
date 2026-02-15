@@ -8,6 +8,9 @@
 # 1. Add 'pi' (default) and 'lily' agents to agents.list
 # 2. Add bindings to route telegram accounts to agents
 # 3. Add lily telegram account to channels.telegram.accounts
+# 4. Configure memory.qmd.paths (knowledge + shared collections)
+# 5. Copy knowledge-config.json from Pi to Lily
+# 6. Create shared memory directory with initial files
 
 set -euo pipefail
 
@@ -105,6 +108,27 @@ process.stdin.on('end', () => {
     dmPolicy: 'pairing'
   };
 
+  // Configure QMD memory paths: add knowledge/ and shared/ collections
+  if (!cfg.memory) cfg.memory = {};
+  if (!cfg.memory.qmd) cfg.memory.qmd = {};
+  if (!cfg.memory.qmd.paths) cfg.memory.qmd.paths = [];
+  // Remove existing knowledge/shared entries to avoid duplicates
+  cfg.memory.qmd.paths = cfg.memory.qmd.paths.filter(p =>
+    p.name !== 'knowledge' && p.name !== 'shared'
+  );
+  // knowledge: workspace-relative, resolves to each agent's own knowledge/ dir
+  cfg.memory.qmd.paths.push({
+    name: 'knowledge',
+    path: 'knowledge',
+    pattern: '**/*.md'
+  });
+  // shared: absolute path, same directory for all agents
+  cfg.memory.qmd.paths.push({
+    name: 'shared',
+    path: '/home/node/.nanobots/shared',
+    pattern: '**/*.md'
+  });
+
   console.log(JSON.stringify(cfg, null, 2));
 });
 ")
@@ -128,6 +152,63 @@ else
   echo "    (Lily can still work, but won't be able to save brand files to Google Drive)"
 fi
 
+# Create shared memory directory with initial files
+SHARED_DIR="/home/node/.nanobots/shared"
+
+echo ""
+echo "Setting up shared memory directory..."
+docker exec "$CONTAINER" mkdir -p "$SHARED_DIR"
+
+# Create initial shared files if they don't exist
+docker exec "$CONTAINER" sh -c "
+if [ ! -f '$SHARED_DIR/USER-PROFILE.md' ]; then
+  cat > '$SHARED_DIR/USER-PROFILE.md' << 'TMPL'
+# User Profile
+
+_Shared across all agents. Any agent can update this when learning new user info._
+
+## Identity
+- **Name:**
+- **Location:**
+- **Timezone:**
+
+## Business
+- **Company:**
+- **Role:**
+- **Industry:**
+
+## Preferences
+- **Language:**
+- **Communication style:**
+TMPL
+  echo '  ✓ Created USER-PROFILE.md'
+fi
+
+if [ ! -f '$SHARED_DIR/cross-context.md' ]; then
+  cat > '$SHARED_DIR/cross-context.md' << 'TMPL'
+# Cross-Agent Context
+
+_Append-only log of events that other agents should know about._
+_Format: ## YYYY-MM-DD [AgentName] Event Title_
+
+---
+TMPL
+  echo '  ✓ Created cross-context.md'
+fi
+
+if [ ! -f '$SHARED_DIR/decisions.md' ]; then
+  cat > '$SHARED_DIR/decisions.md' << 'TMPL'
+# Key Decisions
+
+_Append-only log of important decisions that affect multiple agents._
+_Format: ## YYYY-MM-DD [AgentName] Decision Title_
+
+---
+TMPL
+  echo '  ✓ Created decisions.md'
+fi
+"
+
 echo ""
 echo "Lily agent configured successfully!"
 echo ""
@@ -136,6 +217,8 @@ echo "  - agents.list: added 'pi' (default) + 'lily' (marketing)"
 echo "  - bindings: pi -> telegram (default), lily -> telegram/lily"
 echo "  - channels.telegram.accounts.lily: bot token set"
 echo "  - knowledge-config: shared from Pi's workspace"
+echo "  - memory.qmd.paths: added knowledge + shared collections"
+echo "  - shared/: cross-agent memory directory created"
 echo ""
 echo "Telegram channel needs restart to pick up new account."
 echo "Run: docker restart nanobots"

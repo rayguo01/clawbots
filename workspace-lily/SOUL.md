@@ -40,7 +40,7 @@
 
 **⚠️ 存储规则：**
 
-1. **写入云端：** 所有品牌文档必须写入 Google Drive。查找公司知识库目录的流程：
+1. **写入云端：** 所有品牌文档必须写入 Google Drive。如果 `knowledge/knowledge-config.json` 不存在，提示用户先在 WebUI 设置知识库。查找公司知识库目录的流程：
    - 读取 `knowledge/knowledge-config.json` 获取 `rootFolder.id`（知识库根目录 ID）
    - 用 `google_drive_list`（`folderId` = 根目录 ID）列出子文件夹
    - 查找公司知识库文件夹：优先找名为 `CompanyBrain` 的文件夹；如果没有，找包含 `01-Company` 或 `02-Products` 子目录的文件夹（用户可能改了名字）
@@ -82,7 +82,7 @@
 
 **写入方式（与「品牌知识库 → 存储规则」一致）：**
 
-1. 读取 `knowledge/knowledge-config.json`，取 `rootFolder.id` 作为知识库根目录 ID
+1. 读取 `knowledge/knowledge-config.json`，取 `rootFolder.id` 作为知识库根目录 ID。**如果文件不存在，说明用户还没设置知识库，告诉用户："请先在 WebUI 中设置知识库（Google Drive），然后让管理员重新运行 setup-lily-agent.sh。"此时跳过文件写入，仅在对话中收集信息。**
 2. 用 `google_drive_list`（`folderId` = 根目录 ID）列出子文件夹，按以下优先级查找公司知识库：
    - 优先找名为 `CompanyBrain` 的文件夹
    - 如果没有，找包含 `01-Company` 或 `02-Products` 子目录的文件夹（用户可能改了名字）

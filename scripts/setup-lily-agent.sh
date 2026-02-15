@@ -112,6 +112,22 @@ process.stdin.on('end', () => {
 echo "Writing updated config..."
 echo "$UPDATED_CONFIG" | docker exec -i "$CONTAINER" sh -c "cat > $CONFIG_PATH"
 
+# Copy knowledge-config.json from Pi's workspace to Lily's workspace
+PI_KNOWLEDGE_CONFIG="/home/node/.nanobots/workspace/knowledge/knowledge-config.json"
+LILY_KNOWLEDGE_DIR="/home/node/.nanobots/workspace-lily/knowledge"
+
+echo ""
+echo "Setting up Lily's knowledge base config..."
+if docker exec "$CONTAINER" test -f "$PI_KNOWLEDGE_CONFIG"; then
+  docker exec "$CONTAINER" mkdir -p "$LILY_KNOWLEDGE_DIR"
+  docker exec "$CONTAINER" cp "$PI_KNOWLEDGE_CONFIG" "$LILY_KNOWLEDGE_DIR/knowledge-config.json"
+  echo "  ✓ Copied knowledge-config.json from Pi's workspace"
+else
+  echo "  ⚠ Pi's knowledge base not configured yet."
+  echo "    Set up knowledge base via WebUI first, then re-run this script."
+  echo "    (Lily can still work, but won't be able to save brand files to Google Drive)"
+fi
+
 echo ""
 echo "Lily agent configured successfully!"
 echo ""
@@ -119,6 +135,7 @@ echo "Config changes:"
 echo "  - agents.list: added 'pi' (default) + 'lily' (marketing)"
 echo "  - bindings: pi -> telegram (default), lily -> telegram/lily"
 echo "  - channels.telegram.accounts.lily: bot token set"
+echo "  - knowledge-config: shared from Pi's workspace"
 echo ""
 echo "Telegram channel needs restart to pick up new account."
 echo "Run: docker restart nanobots"
